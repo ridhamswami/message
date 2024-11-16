@@ -1,0 +1,46 @@
+body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    background-color: pink;
+    margin: 0;
+    padding: 20px;
+}
+
+.container {
+    margin-top: 50px;
+}
+
+.header_text_one, .header_text {
+    color: #333;
+    margin: 10px 0;
+}
+
+.gif_container img {
+    max-width: 100%;
+    height: auto;
+    margin: 20px 0;
+}
+
+.buttons {
+    margin-top: 20px;
+}
+
+.btn {
+    padding: 10px 20px;
+    font-size: 18px;
+    cursor: pointer;
+    border: none;
+    border-radius: 5px;
+    margin: 5px;
+    transition: background-color 0.3s;
+}
+
+#yesButton {
+    background-color: #ff5e78;
+    color: white;
+}
+
+#noButton {
+    background-color: #d0d0d0;
+    color: black;
+}
