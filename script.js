@@ -9,11 +9,11 @@ document.getElementById("yesButton").addEventListener("click", function() {
     const templateID = "template_tpi0064"; // Replace with your EmailJS template ID
 
     const templateParams = {
-        to_name: "Mehul",
+        to_name: "Jatin",
         to_email: "ridhamswami34273@iisuniv.ac.in", // Recipient's email address
         from_name: "Ridham", // Your name
         from_email: "ridhamswami34273@iisuniv.ac.in", // Your email address
-        message: "Hey Mehul, you are truly special to me! 💖 I hope this little note brings a smile to your face. ❤"
+        message: "Hey Jatin💖 I hope this little note brings a smile to your face. ❤"
     };
 
     emailjs.send(serviceID, templateID, templateParams)
