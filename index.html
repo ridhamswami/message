@@ -61,28 +61,6 @@
             transform: none;
             box-shadow: none;
         }
-
-        /* Styling for the lock decoder number inputs */
-        .lock-digit {
-            /* Hide the default number input controls (arrows) */
-            -moz-appearance: textfield;
-            transition: border-color 0.2s ease, transform 0.1s ease;
-        }
-        .lock-digit::-webkit-outer-spin-button,
-        .lock-digit::-webkit-inner-spin-button {
-            -webkit-appearance: none;
-            margin: 0;
-        }
-
-        /* Keyframe animation for successful flash */
-        @keyframes flash-success {
-            0% { border-color: #fef08a; }
-            50% { border-color: #10b981; transform: scale(1.05); } /* Green 500 */
-            100% { border-color: #f9a8d4; transform: scale(1); } /* Pink 400 */
-        }
-        .flash-success {
-            animation: flash-success 0.4s ease-out;
-        }
     </style>
 </head>
 <body class="flex items-center justify-center p-4">
@@ -103,30 +81,7 @@
             </p>
         </div>
 
-        <!-- Love Lock Decoder (New Puzzle Area) -->
-        <div id="lock-decoder" class="w-full mb-6 hidden">
-            <!-- Instruction Text inside the decoder area -->
-            <p id="lock-instructions" class="text-white text-base font-medium mb-4">Decode Memory Lock <span id="current-lock-number">1</span>: Enter the 3-Digit Code!</p>
-            
-            <div class="flex justify-center space-x-3 sm:space-x-4">
-                <!-- Lock Digit 1 -->
-                <input type="number" id="lock-digit-1" min="0" max="9" maxlength="1" placeholder="?" 
-                    class="lock-digit w-14 sm:w-16 h-14 sm:h-16 text-3xl text-center bg-gray-600 text-yellow-300 border-2 border-pink-500 rounded-xl focus:ring-4 focus:ring-yellow-500 focus:border-yellow-500">
-                <!-- Lock Digit 2 -->
-                <input type="number" id="lock-digit-2" min="0" max="9" maxlength="1" placeholder="?" 
-                    class="lock-digit w-14 sm:w-16 h-14 sm:h-16 text-3xl text-center bg-gray-600 text-yellow-300 border-2 border-pink-500 rounded-xl focus:ring-4 focus:ring-yellow-500 focus:border-yellow-500">
-                <!-- Lock Digit 3 -->
-                <input type="number" id="lock-digit-3" min="0" max="9" maxlength="1" placeholder="?" 
-                    class="lock-digit w-14 sm:w-16 h-14 sm:h-16 text-3xl text-center bg-gray-600 text-yellow-300 border-2 border-pink-500 rounded-xl focus:ring-4 focus:ring-yellow-500 focus:border-yellow-500">
-            </div>
-            
-            <button 
-                id="check-lock-button"
-                class="mt-6 w-full px-4 py-3 bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-bold rounded-full text-md focus:outline-none focus:ring-4 focus:ring-yellow-500 focus:ring-opacity-50 transition-all duration-300"
-                onclick="checkLockCode()">
-                Try to Unlock
-            </button>
-        </div>
+        <!-- NOTE: The 'Love Lock Decoder' puzzle area has been removed for a simpler flow. -->
         
         <!-- Progress Counter (Kept for continuity) -->
         <div id="progress-container" class="mb-6 text-pink-300 font-medium text-sm sm:text-base transition-opacity duration-300">
@@ -183,30 +138,8 @@
         const finalMessage = document.getElementById('final-message');
         const card = document.getElementById('card');
         const memoryGif = document.getElementById('memory-gif');
-        
-        // Lock Decoder elements and variables
-        const lockDecoder = document.getElementById('lock-decoder');
-        const lockInstructions = document.getElementById('lock-instructions');
-        const checkLockButton = document.getElementById('check-lock-button');
         const finalImageElement = document.getElementById('final-image');
-        const lockDigits = [
-            document.getElementById('lock-digit-1'),
-            document.getElementById('lock-digit-2'),
-            document.getElementById('lock-digit-3')
-        ];
         
-        // Target code (will be set randomly on setup)
-        let targetCode = []; 
-
-        // Placeholder GIFs (REPLACE THESE WITH YOUR OWN GIF URLS for more effort!)
-        const memoryGifs = [
-            "https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExYTlkY2Y1NjVwNG5kdW5vNmFjZWZ3OHV6ZjV0cGV3ZGFxNmd2bW5xZSZlcD12MV9pbnRlcm5hbF9naWYmY3Q9Zw/26FLdmIp6wJr91Jss/giphy.gif",
-            "https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExM2F3bXN5ZWQ5Zml6N3N1c2c3ZzU3bTM2bm9yd244M3hjaW51NWRpbiZlcD12MV9pbnRlcm5hbF9naWYmY3Q9Zw/3oz8xAFtqoOUUrsh8I/giphy.gif",
-            "https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExcm52djczNnFwa2x0Z3R4cnA0d3A3bDBldmFub212Mmx2MW93eHlnYSZlcD12MV9pbnRlcm5hbF9naWYmY3Q9Zw/w8t7g0T1d3Bv3qQY0Y/giphy.gif",
-            "https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExd2R4d3B2MXc0bWJndG44cnJmOTJtZmYyMnJmcjZ1NG13YXlncGJwZyZlcD12MV9pbnRlcm5hbF9naWYmY3Q9Zw/l0O9z0Q57z6Jm1B1e/giphy.gif",
-            "https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExbDB5OGE3NjF1d3ZzdG50MnZ6NnN3Z3UwcXpkc2o1Z2o1ZHpsZzd6eSZlcD12MV9pbnRlcm5hbF9naWYmY3Q9Zw/l4pTfx2qLsKiUqsdq/giphy.gif"
-        ];
-
         // Set the total number of memories
         totalMemories.textContent = memories.length;
 
@@ -374,107 +307,28 @@
             }
         }
 
-        // --- LOCK DECODER LOGIC ---
+        // --- CORE FLOW LOGIC (Simplified) ---
+
+        // Placeholder GIFs (REPLACE THESE WITH YOUR OWN GIF URLS for more effort!)
+        const memoryGifs = [
+            "https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExYTlkY2Y1NjVwNG5kdW5vNmFjZWZ3OHV6ZjV0cGV3ZGFxNmd2bW5xZSZlcD12MV9pbnRlcm5hbF9naWYmY3Q9Zw/26FLdmIp6wJr91Jss/giphy.gif",
+            "https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExM2F3bXN5ZWQ5Zml6N3N1c2c3ZzU3bTM2bm9yd244M3hjaW51NWRpbiZlcD12MV9pbnRlcm5hbF9naWYmY3Q9Zw/3oz8xAFtqoOUUrsh8I/giphy.gif",
+            "https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExcm52djczNnFwa2x0Z3R4cnA0d3A3bDBldmFub212Mmx2MW93eHlnYSZlcD12MV9pbnRlcm5hbF9naWYmY3Q9Zw/w8t7g0T1d3Bv3qQY0Y/giphy.gif",
+            "https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExd2R4d3B2MXc0bWJndG44cnJmOTJtZmYyMnJmcjZ1NG13YXlncGJwZyZlcD12MV9pbnRlcm5hbF9naWYmY3Q9Zw/l0O9z0Q57z6Jm1B1e/giphy.gif",
+            "https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExbDB5OGE3NjF1d3ZzdG50MnZ6NnN3Z3UwcXpkc2o1Z2o1ZHpsZzd6eSZlcD12MV9pbnRlcm5hbF9naWYmY3Q9Zw/l4pTfx2qLsKiUqsdq/giphy.gif"
+        ];
 
         /**
-         * Generates a new 3-digit target code and sets up the UI.
+         * Main function to handle the button click and reveal the next memory.
+         * Now directly executes the memory reveal without a decoding step.
          */
-        function setupLockDecoder() {
-            // Hide the button and previous memory content/GIF
-            revealButton.classList.add('hidden');
-            memoryGif.classList.add('hidden');
-            currentMemory.textContent = "Time to decode! Find the secret 3-digit code to unlock Memory " + (clickCount + 1);
-
-            // Show lock decoder
-            lockDecoder.classList.remove('hidden');
-            
-            // Generate a random 3-digit code (0-9 for each)
-            targetCode = Array.from({ length: 3 }, () => Math.floor(Math.random() * 10));
-            
-            // Clear inputs and enable them
-            lockDigits.forEach((input) => {
-                input.value = '';
-                input.disabled = false;
-                input.classList.remove('border-green-500', 'border-red-500', 'flash-success');
-                input.classList.add('border-pink-500');
-            });
-
-            lockInstructions.innerHTML = `Decode Love Lock <span id="current-lock-number">${clickCount + 1}</span>: Enter the 3-Digit Code!`;
-            checkLockButton.disabled = false;
-            checkLockButton.textContent = 'Try to Unlock';
-            
-            console.log("Target Code:", targetCode.join("")); // Log code for testing
-        }
-
-        /**
-         * Checks the user's entered code against the target code.
-         */
-        function checkLockCode() {
-            let correctCount = 0;
-            // Get the value, convert to number, or use -1 if empty/invalid
-            let userCode = lockDigits.map(input => {
-                // Remove the success flash class on interaction
-                input.classList.remove('flash-success'); 
-                const val = parseInt(input.value);
-                return (val >= 0 && val <= 9) ? val : -1;
-            });
-
-            let allFilled = userCode.every(digit => digit >= 0 && digit <= 9);
-            
-            if (!allFilled) {
-                lockInstructions.textContent = "Please enter all three digits (0-9).";
+        async function revealNextMemory() {
+            // Check if we have revealed all memories and should trigger the final action
+            if (clickCount >= memories.length) {
+                heartShower(); // Final click action for heart animation
                 return;
             }
 
-            lockDigits.forEach((input, index) => {
-                const isCorrect = userCode[index] === targetCode[index];
-                input.classList.remove('border-pink-500', 'border-red-500', 'border-green-500');
-                
-                if (isCorrect) {
-                    input.classList.add('border-green-500', 'flash-success');
-                    correctCount++;
-                } else {
-                    input.classList.add('border-red-500');
-                }
-            });
-
-            if (correctCount === 3) {
-                lockInstructions.innerHTML = "SUCCESS! Lock decoded! 😘 Memory Unlocked!";
-                checkLockButton.disabled = true;
-                lockDigits.forEach(input => input.disabled = true);
-                
-                // Delay slightly before revealing the memory to show success state
-                setTimeout(executeMemoryReveal, 1000); 
-            } else {
-                lockInstructions.textContent = `[${correctCount}/3] Incorrect! The lock rattles. Try again!`;
-            }
-        }
-        
-        /**
-         * Cleans up the lock decoder elements.
-         */
-        function cleanupLockDecoder() {
-            lockDecoder.classList.add('hidden');
-            
-            // Reset input classes for the next round
-            lockDigits.forEach(input => {
-                input.classList.remove('border-green-500', 'border-red-500', 'flash-success');
-                input.classList.add('border-pink-500');
-            });
-
-            // Show the button again
-            revealButton.classList.remove('hidden');
-        }
-
-        // --- CORE FLOW LOGIC ---
-
-        /**
-         * Executes the memory reveal (after the lock is decoded).
-         */
-        async function executeMemoryReveal() {
-            // Clean up lock decoder elements
-            cleanupLockDecoder();
-            
             // 1. Disable button and show processing
             revealButton.disabled = true;
             revealButton.textContent = 'Fetching Voice... Please Wait.';
@@ -499,7 +353,7 @@
             // 4. Re-enable button and update state for the next step
             if (clickCount < memories.length) {
                 // Not finished yet - set up for the next click
-                revealButton.textContent = `Start Decoder for Memory ${clickCount + 1} / ${memories.length}`;
+                revealButton.textContent = `Unlock Next Memory ${clickCount + 1} / ${memories.length}`;
                 revealButton.disabled = false;
             } else {
                 // FINAL STEP
@@ -523,20 +377,6 @@
                 revealButton.disabled = false; // Enable for the final click to trigger heart shower
                 
                 // Trigger the heart shower immediately as well, just for extra love!
-                heartShower();
-            }
-        }
-
-
-        /**
-         * Main function to handle the button click. Now acts as a state manager.
-         */
-        function revealNextMemory() {
-            if (clickCount < memories.length) {
-                // If there are memories left, start the lock decoder sequence
-                setupLockDecoder();
-            } else {
-                // This branch handles the final click set up by executeMemoryReveal
                 heartShower();
             }
         }
