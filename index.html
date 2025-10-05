@@ -191,32 +191,53 @@
             }
         }
 
-        function playAudio(audioUrl) {
+        /**
+         * Uses the Web Audio API (AudioContext) for more robust playback,
+         * which is necessary to overcome strict browser autoplay restrictions
+         * when playing dynamically generated audio blobs.
+         */
+        async function playAudio(audioUrl) {
             if (!audioUrl) return Promise.resolve();
             
-            // Create a promise to handle playback completion
-            return new Promise(resolve => {
-                const audio = new Audio(audioUrl);
-                
-                // Function to clean up the temporary blob URL and resolve the promise
-                const cleanup = () => {
-                    URL.revokeObjectURL(audioUrl); // IMPORTANT: Revoke the Blob URL to free up memory
-                    resolve();
-                };
+            // Check for Web Audio API support
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            if (!AudioContext) {
+                console.error("Web Audio API not supported.");
+                URL.revokeObjectURL(audioUrl);
+                return Promise.resolve();
+            }
 
-                // Set cleanup for both success and error
-                audio.onended = cleanup;
-                audio.onerror = () => {
-                    console.error("Audio playback error. Revoking URL.");
-                    cleanup(); 
-                };
-                
-                // Attempt to play, handling potential browser restrictions (which would also trigger cleanup)
-                audio.play().catch(e => {
-                    console.warn("Audio playback failed (Autoplay prevented or other issue). Revoking URL.", e);
-                    cleanup();
+            const context = new AudioContext();
+
+            try {
+                // 1. Fetch the audio blob data
+                const response = await fetch(audioUrl);
+                const arrayBuffer = await response.arrayBuffer();
+
+                // 2. Decode the audio data
+                const audioBuffer = await context.decodeAudioData(arrayBuffer);
+
+                // 3. Create a source node
+                const source = context.createBufferSource();
+                source.buffer = audioBuffer;
+                source.connect(context.destination);
+
+                // 4. Play the audio and set up cleanup
+                return new Promise(resolve => {
+                    source.onended = () => {
+                        URL.revokeObjectURL(audioUrl); // Clean up blob URL
+                        context.close().catch(e => console.error("Error closing AudioContext:", e));
+                        resolve();
+                    };
+                    source.start(0); // Start playback
                 });
-            });
+
+            } catch (e) {
+                console.error("Web Audio API Playback Failed, attempting to close context:", e);
+                URL.revokeObjectURL(audioUrl); // Ensure cleanup
+                context.close().catch(e => console.error("Error closing AudioContext on failure:", e));
+                return Promise.resolve();
+            }
         }
         
         async function speakMemory(text) {
