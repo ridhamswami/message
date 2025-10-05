@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3 Months with Aryan ❤️</title>
+    <title>3 Months with Aryan & Ridham ❤️</title>
     <!-- Load Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -66,11 +66,22 @@
         .lock-digit {
             /* Hide the default number input controls (arrows) */
             -moz-appearance: textfield;
+            transition: border-color 0.2s ease, transform 0.1s ease;
         }
         .lock-digit::-webkit-outer-spin-button,
         .lock-digit::-webkit-inner-spin-button {
             -webkit-appearance: none;
             margin: 0;
+        }
+
+        /* Keyframe animation for successful flash */
+        @keyframes flash-success {
+            0% { border-color: #fef08a; }
+            50% { border-color: #10b981; transform: scale(1.05); } /* Green 500 */
+            100% { border-color: #f9a8d4; transform: scale(1); } /* Pink 400 */
+        }
+        .flash-success {
+            animation: flash-success 0.4s ease-out;
         }
     </style>
 </head>
@@ -85,7 +96,8 @@
 
         <!-- Memory Display Area -->
         <div id="memory-display" class="bg-gray-800 p-4 sm:p-6 rounded-xl border border-pink-500 mb-8 min-h-[120px] flex flex-col items-center justify-center">
-            <img id="memory-gif" src="" alt="Romantic GIF" class="hidden rounded-lg mb-4 max-w-full h-auto" style="max-height: 150px; object-fit: cover; border: 2px solid var(--secondary-color);" onerror="this.onerror=null;this.src='https://placehold.co/400x150/1f2937/fef08a?text=Loading+GIF...';" >
+            <img id="memory-gif" src="" alt="Romantic GIF" class="hidden rounded-lg mb-4 max-w-full h-auto" style="max-height: 150px; object-fit: cover; border: 2px solid var(--secondary-color);" 
+                onerror="this.onerror=null;this.src='https://placehold.co/400x150/1f2937/fef08a?text=Loading+GIF+or+Placeholder...';" >
             <p id="current-memory" class="text-lg sm:text-xl text-yellow-200 font-semibold italic transition-opacity duration-500 opacity-100">
                 Click the button below to unlock your first secret memory!
             </p>
@@ -99,13 +111,13 @@
             <div class="flex justify-center space-x-3 sm:space-x-4">
                 <!-- Lock Digit 1 -->
                 <input type="number" id="lock-digit-1" min="0" max="9" maxlength="1" placeholder="?" 
-                    class="lock-digit w-14 sm:w-16 h-14 sm:h-16 text-3xl text-center bg-gray-600 text-yellow-300 border-2 border-pink-500 rounded-xl focus:ring-4 focus:ring-yellow-500 focus:border-yellow-500 transition duration-150">
+                    class="lock-digit w-14 sm:w-16 h-14 sm:h-16 text-3xl text-center bg-gray-600 text-yellow-300 border-2 border-pink-500 rounded-xl focus:ring-4 focus:ring-yellow-500 focus:border-yellow-500">
                 <!-- Lock Digit 2 -->
                 <input type="number" id="lock-digit-2" min="0" max="9" maxlength="1" placeholder="?" 
-                    class="lock-digit w-14 sm:w-16 h-14 sm:h-16 text-3xl text-center bg-gray-600 text-yellow-300 border-2 border-pink-500 rounded-xl focus:ring-4 focus:ring-yellow-500 focus:border-yellow-500 transition duration-150">
+                    class="lock-digit w-14 sm:w-16 h-14 sm:h-16 text-3xl text-center bg-gray-600 text-yellow-300 border-2 border-pink-500 rounded-xl focus:ring-4 focus:ring-yellow-500 focus:border-yellow-500">
                 <!-- Lock Digit 3 -->
                 <input type="number" id="lock-digit-3" min="0" max="9" maxlength="1" placeholder="?" 
-                    class="lock-digit w-14 sm:w-16 h-14 sm:h-16 text-3xl text-center bg-gray-600 text-yellow-300 border-2 border-pink-500 rounded-xl focus:ring-4 focus:ring-yellow-500 focus:border-yellow-500 transition duration-150">
+                    class="lock-digit w-14 sm:w-16 h-14 sm:h-16 text-3xl text-center bg-gray-600 text-yellow-300 border-2 border-pink-500 rounded-xl focus:ring-4 focus:ring-yellow-500 focus:border-yellow-500">
             </div>
             
             <button 
@@ -131,15 +143,27 @@
 
         <!-- Final Message Area -->
         <div id="final-message-container" class="mt-8 p-4 bg-yellow-200/20 rounded-lg hidden">
-            <p class="text-xl sm:text-2xl font-bold text-yellow-100">
-                And finally...
+            <p class="text-xl sm:text-2xl font-bold text-yellow-100 mb-4">
+                And finally, one special picture...
             </p>
-            <p id="final-message" class="text-white mt-2 text-base sm:text-lg">
+            <div class="flex flex-col items-center">
+                 <!-- Image Placeholder using the uploaded file -->
+                <img id="final-image" 
+                     src="uploaded:image_bd836a.jpg-75cefe48-2673-4e28-b293-e01fda56e57e" 
+                     alt="Ridham and Aryan together" 
+                     class="rounded-xl shadow-lg w-full max-w-xs h-auto object-cover border-4 border-yellow-500 mb-4" 
+                     onerror="this.onerror=null;this.src='https://placehold.co/300x200/5c6b73/ffffff?text=Our+Special+Photo';">
+
+                <p id="final-message" class="text-white text-base sm:text-lg">
                 </p>
+            </div>
         </div>
     </div>
 
     <script>
+        // Use the contentFetchId for the final image
+        const finalImageContentId = "uploaded:image_bd836a.jpg-75cefe48-2673-4e28-b293-e01fda56e57e";
+        
         const memories = [
             "Remember that first time we talked for hours? I knew right then you were special.",
             "I love how you can always make me laugh, even on my worst days. You're my favorite comedian!",
@@ -160,10 +184,11 @@
         const card = document.getElementById('card');
         const memoryGif = document.getElementById('memory-gif');
         
-        // New Lock Decoder elements and variables
+        // Lock Decoder elements and variables
         const lockDecoder = document.getElementById('lock-decoder');
         const lockInstructions = document.getElementById('lock-instructions');
         const checkLockButton = document.getElementById('check-lock-button');
+        const finalImageElement = document.getElementById('final-image');
         const lockDigits = [
             document.getElementById('lock-digit-1'),
             document.getElementById('lock-digit-2'),
@@ -364,20 +389,21 @@
             lockDecoder.classList.remove('hidden');
             
             // Generate a random 3-digit code (0-9 for each)
-            // For example, if you wanted the code to be 3-7-1, set targetCode = [3, 7, 1];
             targetCode = Array.from({ length: 3 }, () => Math.floor(Math.random() * 10));
             
             // Clear inputs and enable them
-            lockDigits.forEach((input, index) => {
+            lockDigits.forEach((input) => {
                 input.value = '';
                 input.disabled = false;
-                input.classList.remove('border-green-500', 'border-red-500');
+                input.classList.remove('border-green-500', 'border-red-500', 'flash-success');
                 input.classList.add('border-pink-500');
             });
 
-            lockInstructions.innerHTML = `Decode Memory Lock <span id="current-lock-number">${clickCount + 1}</span>: Enter the 3-Digit Code!`;
+            lockInstructions.innerHTML = `Decode Love Lock <span id="current-lock-number">${clickCount + 1}</span>: Enter the 3-Digit Code!`;
             checkLockButton.disabled = false;
             checkLockButton.textContent = 'Try to Unlock';
+            
+            console.log("Target Code:", targetCode.join("")); // Log code for testing
         }
 
         /**
@@ -387,8 +413,9 @@
             let correctCount = 0;
             // Get the value, convert to number, or use -1 if empty/invalid
             let userCode = lockDigits.map(input => {
+                // Remove the success flash class on interaction
+                input.classList.remove('flash-success'); 
                 const val = parseInt(input.value);
-                // Ensure value is a single digit
                 return (val >= 0 && val <= 9) ? val : -1;
             });
 
@@ -401,31 +428,26 @@
 
             lockDigits.forEach((input, index) => {
                 const isCorrect = userCode[index] === targetCode[index];
-                input.classList.remove('border-pink-500');
+                input.classList.remove('border-pink-500', 'border-red-500', 'border-green-500');
                 
                 if (isCorrect) {
-                    input.classList.remove('border-red-500');
-                    input.classList.add('border-green-500');
+                    input.classList.add('border-green-500', 'flash-success');
                     correctCount++;
                 } else {
-                    input.classList.remove('border-green-500');
                     input.classList.add('border-red-500');
                 }
             });
 
             if (correctCount === 3) {
-                lockInstructions.textContent = "SUCCESS! Code Accepted. Unlocking Memory...";
+                lockInstructions.innerHTML = "SUCCESS! Lock decoded! 😘 Memory Unlocked!";
                 checkLockButton.disabled = true;
                 lockDigits.forEach(input => input.disabled = true);
                 
                 // Delay slightly before revealing the memory to show success state
-                setTimeout(executeMemoryReveal, 800); 
+                setTimeout(executeMemoryReveal, 1000); 
             } else {
                 lockInstructions.textContent = `[${correctCount}/3] Incorrect! The lock rattles. Try again!`;
             }
-            
-            // Optional: Log the target code to the console for easy testing/debugging
-            console.log("Target Code:", targetCode.join(""));
         }
         
         /**
@@ -436,7 +458,7 @@
             
             // Reset input classes for the next round
             lockDigits.forEach(input => {
-                input.classList.remove('border-green-500', 'border-red-500');
+                input.classList.remove('border-green-500', 'border-red-500', 'flash-success');
                 input.classList.add('border-pink-500');
             });
 
@@ -455,7 +477,7 @@
             
             // 1. Disable button and show processing
             revealButton.disabled = true;
-            revealButton.textContent = 'Playing Memory Audio...';
+            revealButton.textContent = 'Fetching Voice... Please Wait.';
             
             const memoryText = memories[clickCount];
 
@@ -469,6 +491,7 @@
             
             // 3. Fetch the audio and wait for it to finish playing
             const audioUrl = await speakMemory(memoryText);
+            revealButton.textContent = 'Playing Memory Audio...';
             await playAudio(audioUrl); 
 
             clickCount++;
@@ -487,9 +510,10 @@
                 card.classList.add('animate-pulse'); 
 
                 // Display the final message
-                finalMessage.textContent = "Happy 3 months, my wonderful Aryan. I've enjoyed every moment, and I can't wait for what's next! Love you always. - [Your Name]";
+                finalMessage.textContent = "Happy 3 months, my wonderful Aryan. I've enjoyed every moment, and I can't wait for what's next! Love you always. - Ridham";
                 finalMessageContainer.classList.remove('hidden');
                 memoryGif.classList.add('hidden'); // Hide the last GIF
+                finalImageElement.classList.remove('hidden'); // Ensure final image is shown
                 
                 // Final button state (enabled for the last interaction)
                 revealButton.textContent = "Now, I just need a big hug! 🤗";
