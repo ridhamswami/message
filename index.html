@@ -118,9 +118,9 @@
                 And finally, one special picture...
             </p>
             <div class="flex flex-col items-center">
-                 <!-- Image Placeholder using the uploaded file -->
+                 <!-- Final Image: PASTE the raw URL of your final photo here! (REQUIRED) -->
                 <img id="final-image" 
-                     src="uploaded:image_bd836a.jpg-75cefe48-2673-4e28-b293-e01fda56e57e" 
+                     src="https://raw.githubusercontent.com/ridhamswami/message/main/assets/IMG-20251005-WA0179.jpg" 
                      alt="Ridham and Aryan together" 
                      class="rounded-xl shadow-lg w-full max-w-xs h-auto object-cover border-4 border-yellow-500 mb-4" 
                      onerror="this.onerror=null;this.src='https://placehold.co/300x200/5c6b73/ffffff?text=Our+Special+Photo';">
@@ -133,7 +133,9 @@
 
     <script>
         // --- CONFIGURATION ---
-        const finalImageContentId = "uploaded:image_bd836a.jpg-75cefe48-2673-4e28-b293-e01fda56e57e";
+        // Final image URL configuration (matches the HTML 'src' above)
+        // PASTE THE RAW GITHUB LINK FOR YOUR FINAL PHOTO HERE
+        const finalImageContentId = "https://raw.githubusercontent.com/ridhamswami/message/main/assets/IMG-20251005-WA0179.jpg"; 
         
         const memories = [
             "Remember that first time we talked for hours? I knew right then you were special.",
@@ -143,14 +145,15 @@
             "I've loved every moment of these past three months. Here's to many, many more, my love! ❤️"
         ];
         
-        // --- Placeholder Images (REPLACE THESE with your actual image URLs!) ---
+        // --- YOUR MEMORY IMAGES (PASTE RAW GITHUB URLs HERE) ---
+        // The file names here must exactly match what you uploaded to your assets folder!
         const memoryImages = [
             // Example: replace with "https://yourimagehost.com/photo1.jpg"
             "https://raw.githubusercontent.com/ridhamswami/message/main/assets/IMG-20251005-WA0176.jpg", 
             "https://raw.githubusercontent.com/ridhamswami/message/main/assets/IMG-20251005-WA0177.jpg",
             "https://raw.githubusercontent.com/ridhamswami/message/main/assets/IMG-20251005-WA0180.jpg",
             "https://raw.githubusercontent.com/ridhamswami/message/main/assets/IMG-20251005-WA0181.jpg",
-            "https://raw.githubusercontent.com/ridhamswami/message/main/assets/IMG-20251005-WA0179.jpg"
+            "https://raw.githubusercontent.com/ridhamswami/message/main/assets/IMG-20251005-WA0179.jpg" // Note: This is now the same as the final image, but the logic handles showing it only once correctly.
         ];
         
         let clickCount = 0;
@@ -285,11 +288,15 @@
                 card.classList.add('border-yellow-200');
                 card.classList.add('animate-pulse'); 
 
+                // Set the final image source and ensure it's visible
+                finalImageElement.src = finalImageContentId;
+                finalImageElement.classList.remove('hidden');
+
                 // Display the final message
                 finalMessage.textContent = "Happy 3 months, my wonderful Aryan. I've enjoyed every moment, and I can't wait for what's next! Love you always. - Ridham";
                 finalMessageContainer.classList.remove('hidden');
                 memoryGif.classList.add('hidden'); // Hide the last memory image
-                finalImageElement.classList.remove('hidden'); // Ensure final image is shown
+                
                 
                 // Final button state
                 revealButton.textContent = "Now, I just need a big hug! 🤗";
@@ -306,6 +313,3 @@
 
 </body>
 </html>
-
-
-
