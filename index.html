@@ -61,6 +61,17 @@
             transform: none;
             box-shadow: none;
         }
+
+        /* Styling for the lock decoder number inputs */
+        .lock-digit {
+            /* Hide the default number input controls (arrows) */
+            -moz-appearance: textfield;
+        }
+        .lock-digit::-webkit-outer-spin-button,
+        .lock-digit::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
     </style>
 </head>
 <body class="flex items-center justify-center p-4">
@@ -73,26 +84,39 @@
         </h1>
 
         <!-- Memory Display Area -->
-        <div id="memory-display" class="bg-gray-800 p-4 sm:p-6 rounded-xl border border-pink-500 mb-8 min-h-[100px] flex items-center justify-center">
+        <div id="memory-display" class="bg-gray-800 p-4 sm:p-6 rounded-xl border border-pink-500 mb-8 min-h-[120px] flex flex-col items-center justify-center">
+            <img id="memory-gif" src="" alt="Romantic GIF" class="hidden rounded-lg mb-4 max-w-full h-auto" style="max-height: 150px; object-fit: cover; border: 2px solid var(--secondary-color);" onerror="this.onerror=null;this.src='https://placehold.co/400x150/1f2937/fef08a?text=Loading+GIF...';" >
             <p id="current-memory" class="text-lg sm:text-xl text-yellow-200 font-semibold italic transition-opacity duration-500 opacity-100">
                 Click the button below to unlock your first secret memory!
             </p>
         </div>
 
-        <!-- Puzzle Area (Initially Hidden) -->
-        <div id="puzzle-area" class="relative w-full h-40 bg-gray-700 rounded-xl border-4 border-dashed border-yellow-500 mb-6 hidden cursor-crosshair overflow-hidden p-2">
-            <!-- Instruction Text inside the puzzle area -->
-            <p id="puzzle-instructions" class="text-white text-sm font-bold opacity-70 mb-2">Find the Sweet Spot! Click rapidly near it to charge the memory lock.</p>
+        <!-- Love Lock Decoder (New Puzzle Area) -->
+        <div id="lock-decoder" class="w-full mb-6 hidden">
+            <!-- Instruction Text inside the decoder area -->
+            <p id="lock-instructions" class="text-white text-base font-medium mb-4">Decode Memory Lock <span id="current-lock-number">1</span>: Enter the 3-Digit Code!</p>
             
-            <!-- Sweet Spot Target (Functionally active, visually minimal) -->
-            <div id="sweet-spot" class="absolute bg-pink-400/40 rounded-full w-10 h-10 border-2 border-pink-400" style="transition: all 0.1s; transform: scale(0.5); display: none;"></div>
+            <div class="flex justify-center space-x-3 sm:space-x-4">
+                <!-- Lock Digit 1 -->
+                <input type="number" id="lock-digit-1" min="0" max="9" maxlength="1" placeholder="?" 
+                    class="lock-digit w-14 sm:w-16 h-14 sm:h-16 text-3xl text-center bg-gray-600 text-yellow-300 border-2 border-pink-500 rounded-xl focus:ring-4 focus:ring-yellow-500 focus:border-yellow-500 transition duration-150">
+                <!-- Lock Digit 2 -->
+                <input type="number" id="lock-digit-2" min="0" max="9" maxlength="1" placeholder="?" 
+                    class="lock-digit w-14 sm:w-16 h-14 sm:h-16 text-3xl text-center bg-gray-600 text-yellow-300 border-2 border-pink-500 rounded-xl focus:ring-4 focus:ring-yellow-500 focus:border-yellow-500 transition duration-150">
+                <!-- Lock Digit 3 -->
+                <input type="number" id="lock-digit-3" min="0" max="9" maxlength="1" placeholder="?" 
+                    class="lock-digit w-14 sm:w-16 h-14 sm:h-16 text-3xl text-center bg-gray-600 text-yellow-300 border-2 border-pink-500 rounded-xl focus:ring-4 focus:ring-yellow-500 focus:border-yellow-500 transition duration-150">
+            </div>
+            
+            <button 
+                id="check-lock-button"
+                class="mt-6 w-full px-4 py-3 bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-bold rounded-full text-md focus:outline-none focus:ring-4 focus:ring-yellow-500 focus:ring-opacity-50 transition-all duration-300"
+                onclick="checkLockCode()">
+                Try to Unlock
+            </button>
         </div>
         
-        <!-- Progress Bar & Counter (Relocated below puzzle area) -->
-        <div id="progress-bar-container" class="w-full bg-gray-700 rounded-full h-4 mb-6 hidden">
-            <div id="progress-bar" class="bg-yellow-400 h-4 rounded-full transition-all duration-100 ease-linear" style="width: 0%"></div>
-        </div>
-
+        <!-- Progress Counter (Kept for continuity) -->
         <div id="progress-container" class="mb-6 text-pink-300 font-medium text-sm sm:text-base transition-opacity duration-300">
             Memory Progress: <span id="memory-counter" class="text-white font-bold">0</span> / <span id="total-memories"></span>
         </div>
@@ -125,12 +149,6 @@
         ];
         
         let clickCount = 0;
-        const MAX_PROGRESS = 100;
-        const SWEET_SPOT_RADIUS = 50; // Effective radius for scoring points
-        let puzzleActive = false;
-        let puzzleProgress = 0;
-        let sweetSpotX = 0;
-        let sweetSpotY = 0;
 
         // DOM Elements
         const memoryCounter = document.getElementById('memory-counter');
@@ -140,110 +158,34 @@
         const finalMessageContainer = document.getElementById('final-message-container');
         const finalMessage = document.getElementById('final-message');
         const card = document.getElementById('card');
-        const puzzleArea = document.getElementById('puzzle-area');
-        const sweetSpot = document.getElementById('sweet-spot');
-        const progressBarContainer = document.getElementById('progress-bar-container');
-        const progressBar = document.getElementById('progress-bar');
-        const puzzleInstructions = document.getElementById('puzzle-instructions');
+        const memoryGif = document.getElementById('memory-gif');
+        
+        // New Lock Decoder elements and variables
+        const lockDecoder = document.getElementById('lock-decoder');
+        const lockInstructions = document.getElementById('lock-instructions');
+        const checkLockButton = document.getElementById('check-lock-button');
+        const lockDigits = [
+            document.getElementById('lock-digit-1'),
+            document.getElementById('lock-digit-2'),
+            document.getElementById('lock-digit-3')
+        ];
+        
+        // Target code (will be set randomly on setup)
+        let targetCode = []; 
+
+        // Placeholder GIFs (REPLACE THESE WITH YOUR OWN GIF URLS for more effort!)
+        const memoryGifs = [
+            "https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExYTlkY2Y1NjVwNG5kdW5vNmFjZWZ3OHV6ZjV0cGV3ZGFxNmd2bW5xZSZlcD12MV9pbnRlcm5hbF9naWYmY3Q9Zw/26FLdmIp6wJr91Jss/giphy.gif",
+            "https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExM2F3bXN5ZWQ5Zml6N3N1c2c3ZzU3bTM2bm9yd244M3hjaW51NWRpbiZlcD12MV9pbnRlcm5hbF9naWYmY3Q9Zw/3oz8xAFtqoOUUrsh8I/giphy.gif",
+            "https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExcm52djczNnFwa2x0Z3R4cnA0d3A3bDBldmFub212Mmx2MW93eHlnYSZlcD12MV9pbnRlcm5hbF9naWYmY3Q9Zw/w8t7g0T1d3Bv3qQY0Y/giphy.gif",
+            "https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExd2R4d3B2MXc0bWJndG44cnJmOTJtZmYyMnJmcjZ1NG13YXlncGJwZyZlcD12MV9pbnRlcm5hbF9naWYmY3Q9Zw/l0O9z0Q57z6Jm1B1e/giphy.gif",
+            "https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExbDB5OGE3NjF1d3ZzdG50MnZ6NnN3Z3UwcXpkc2o1Z2o1ZHpsZzd6eSZlcD12MV9pbnRlcm5hbF9naWYmY3Q9Zw/l4pTfx2qLsKiUqsdq/giphy.gif"
+        ];
 
         // Set the total number of memories
         totalMemories.textContent = memories.length;
 
-        // --- PUZZLE LOGIC ---
-
-        /**
-         * Sets up the puzzle area with a new randomized sweet spot.
-         */
-        function setupPuzzle() {
-            if (puzzleActive) return;
-            puzzleActive = true;
-            puzzleProgress = 0;
-            progressBar.style.width = '0%';
-            
-            // Hide the button and show the puzzle elements
-            revealButton.classList.add('hidden');
-            puzzleArea.classList.remove('hidden');
-            progressBarContainer.classList.remove('hidden');
-            
-            currentMemory.textContent = "Find the Sweet Spot! Click rapidly inside the pink area to charge the memory lock!";
-
-            const areaRect = puzzleArea.getBoundingClientRect();
-            
-            // Calculate a random sweet spot position that is safely inside the area
-            // Offset by SWEET_SPOT_RADIUS to prevent half of the spot from being off-screen
-            sweetSpotX = Math.random() * (areaRect.width - SWEET_SPOT_RADIUS * 2) + SWEET_SPOT_RADIUS;
-            sweetSpotY = Math.random() * (areaRect.height - SWEET_SPOT_RADIUS * 2) + SWEET_SPOT_RADIUS;
-            
-            // Move the visible sweet spot (small pink circle) to the calculated location
-            sweetSpot.style.left = `${sweetSpotX - sweetSpot.offsetWidth / 2}px`;
-            sweetSpot.style.top = `${sweetSpotY - sweetSpot.offsetHeight / 2}px`;
-            sweetSpot.style.display = 'block'; // Make the visual target visible
-
-            // Attach click handler to the puzzle area
-            puzzleArea.addEventListener('click', puzzleClick);
-        }
-        
-        /**
-         * Handles the puzzle click event, updating progress based on proximity.
-         * @param {Event} event The click event.
-         */
-        function puzzleClick(event) {
-            if (!puzzleActive) return;
-
-            // Calculate click position relative to the puzzle area's top-left corner
-            const areaRect = puzzleArea.getBoundingClientRect();
-            const clickX = event.clientX - areaRect.left;
-            const clickY = event.clientY - areaRect.top;
-            
-            // Calculate distance between click and sweet spot center
-            const distance = Math.sqrt(
-                Math.pow(clickX - sweetSpotX, 2) + Math.pow(clickY - sweetSpotY, 2)
-            );
-            
-            let points = 0;
-            
-            if (distance < SWEET_SPOT_RADIUS) {
-                // Closer clicks give more points (Inverse relationship with distance)
-                points = 3 + (1 - (distance / SWEET_SPOT_RADIUS)) * 7; // Max 10 points for perfect hit
-                puzzleInstructions.textContent = "YES! Keep clicking the spot!";
-            } else {
-                points = 1; // Minimum points for clicking anywhere in the zone
-                puzzleInstructions.textContent = "Miss! Try to find the pink glow!";
-            }
-            
-            puzzleProgress += points;
-
-            // Ensure progress doesn't exceed the max
-            if (puzzleProgress > MAX_PROGRESS) {
-                puzzleProgress = MAX_PROGRESS;
-            }
-
-            // Update the visual progress bar
-            progressBar.style.width = `${(puzzleProgress / MAX_PROGRESS) * 100}%`;
-            
-            // Check if puzzle is solved
-            if (puzzleProgress >= MAX_PROGRESS) {
-                executeMemoryReveal();
-            }
-        }
-
-        /**
-         * Cleans up the puzzle elements and proceeds to the memory reveal.
-         */
-        function cleanupPuzzle() {
-            puzzleActive = false;
-            puzzleArea.removeEventListener('click', puzzleClick);
-
-            // Hide the puzzle elements
-            puzzleArea.classList.add('hidden');
-            progressBarContainer.classList.add('hidden');
-            sweetSpot.style.display = 'none';
-
-            // Show the button again
-            revealButton.classList.remove('hidden');
-        }
-
-        // --- TTS & UTILITY LOGIC (UNCHANGED) ---
+        // --- UTILITY FUNCTIONS ---
 
         function base64ToArrayBuffer(base64) {
             const binaryString = atob(base64);
@@ -314,13 +256,13 @@
 
             const payload = {
                 contents: [{
-                    parts: [{ text: `Say cheerfully: ${text}` }]
+                    parts: [{ text: `Say with a sweet and romantic tone: ${text}` }]
                 }],
                 generationConfig: {
                     responseModalities: ["AUDIO"],
                     speechConfig: {
                         voiceConfig: {
-                            prebuiltVoiceConfig: { voiceName: "Puck" } // Upbeat, female voice
+                            prebuiltVoiceConfig: { voiceName: "Puck" } // Upbeat, clear female voice
                         }
                     }
                 },
@@ -407,24 +349,123 @@
             }
         }
 
+        // --- LOCK DECODER LOGIC ---
+
+        /**
+         * Generates a new 3-digit target code and sets up the UI.
+         */
+        function setupLockDecoder() {
+            // Hide the button and previous memory content/GIF
+            revealButton.classList.add('hidden');
+            memoryGif.classList.add('hidden');
+            currentMemory.textContent = "Time to decode! Find the secret 3-digit code to unlock Memory " + (clickCount + 1);
+
+            // Show lock decoder
+            lockDecoder.classList.remove('hidden');
+            
+            // Generate a random 3-digit code (0-9 for each)
+            // For example, if you wanted the code to be 3-7-1, set targetCode = [3, 7, 1];
+            targetCode = Array.from({ length: 3 }, () => Math.floor(Math.random() * 10));
+            
+            // Clear inputs and enable them
+            lockDigits.forEach((input, index) => {
+                input.value = '';
+                input.disabled = false;
+                input.classList.remove('border-green-500', 'border-red-500');
+                input.classList.add('border-pink-500');
+            });
+
+            lockInstructions.innerHTML = `Decode Memory Lock <span id="current-lock-number">${clickCount + 1}</span>: Enter the 3-Digit Code!`;
+            checkLockButton.disabled = false;
+            checkLockButton.textContent = 'Try to Unlock';
+        }
+
+        /**
+         * Checks the user's entered code against the target code.
+         */
+        function checkLockCode() {
+            let correctCount = 0;
+            // Get the value, convert to number, or use -1 if empty/invalid
+            let userCode = lockDigits.map(input => {
+                const val = parseInt(input.value);
+                // Ensure value is a single digit
+                return (val >= 0 && val <= 9) ? val : -1;
+            });
+
+            let allFilled = userCode.every(digit => digit >= 0 && digit <= 9);
+            
+            if (!allFilled) {
+                lockInstructions.textContent = "Please enter all three digits (0-9).";
+                return;
+            }
+
+            lockDigits.forEach((input, index) => {
+                const isCorrect = userCode[index] === targetCode[index];
+                input.classList.remove('border-pink-500');
+                
+                if (isCorrect) {
+                    input.classList.remove('border-red-500');
+                    input.classList.add('border-green-500');
+                    correctCount++;
+                } else {
+                    input.classList.remove('border-green-500');
+                    input.classList.add('border-red-500');
+                }
+            });
+
+            if (correctCount === 3) {
+                lockInstructions.textContent = "SUCCESS! Code Accepted. Unlocking Memory...";
+                checkLockButton.disabled = true;
+                lockDigits.forEach(input => input.disabled = true);
+                
+                // Delay slightly before revealing the memory to show success state
+                setTimeout(executeMemoryReveal, 800); 
+            } else {
+                lockInstructions.textContent = `[${correctCount}/3] Incorrect! The lock rattles. Try again!`;
+            }
+            
+            // Optional: Log the target code to the console for easy testing/debugging
+            console.log("Target Code:", targetCode.join(""));
+        }
+        
+        /**
+         * Cleans up the lock decoder elements.
+         */
+        function cleanupLockDecoder() {
+            lockDecoder.classList.add('hidden');
+            
+            // Reset input classes for the next round
+            lockDigits.forEach(input => {
+                input.classList.remove('border-green-500', 'border-red-500');
+                input.classList.add('border-pink-500');
+            });
+
+            // Show the button again
+            revealButton.classList.remove('hidden');
+        }
+
         // --- CORE FLOW LOGIC ---
 
         /**
-         * Executes the memory reveal (after the puzzle is solved).
+         * Executes the memory reveal (after the lock is decoded).
          */
         async function executeMemoryReveal() {
-            // Clean up puzzle elements
-            cleanupPuzzle();
+            // Clean up lock decoder elements
+            cleanupLockDecoder();
             
             // 1. Disable button and show processing
             revealButton.disabled = true;
-            revealButton.textContent = 'Unlocking Memory...';
+            revealButton.textContent = 'Playing Memory Audio...';
             
             const memoryText = memories[clickCount];
 
-            // 2. Display the current memory
+            // 2. Display the current memory and GIF
             currentMemory.textContent = memoryText;
             memoryCounter.textContent = clickCount + 1;
+            
+            // Show GIF
+            memoryGif.src = memoryGifs[clickCount];
+            memoryGif.classList.remove('hidden');
             
             // 3. Fetch the audio and wait for it to finish playing
             const audioUrl = await speakMemory(memoryText);
@@ -435,7 +476,7 @@
             // 4. Re-enable button and update state for the next step
             if (clickCount < memories.length) {
                 // Not finished yet - set up for the next click
-                revealButton.textContent = `Start Puzzle for Memory ${clickCount + 1} / ${memories.length}`;
+                revealButton.textContent = `Start Decoder for Memory ${clickCount + 1} / ${memories.length}`;
                 revealButton.disabled = false;
             } else {
                 // FINAL STEP
@@ -448,6 +489,7 @@
                 // Display the final message
                 finalMessage.textContent = "Happy 3 months, my wonderful Aryan. I've enjoyed every moment, and I can't wait for what's next! Love you always. - [Your Name]";
                 finalMessageContainer.classList.remove('hidden');
+                memoryGif.classList.add('hidden'); // Hide the last GIF
                 
                 // Final button state (enabled for the last interaction)
                 revealButton.textContent = "Now, I just need a big hug! 🤗";
@@ -467,8 +509,8 @@
          */
         function revealNextMemory() {
             if (clickCount < memories.length) {
-                // If there are memories left, start the puzzle sequence
-                setupPuzzle();
+                // If there are memories left, start the lock decoder sequence
+                setupLockDecoder();
             } else {
                 // This branch handles the final click set up by executeMemoryReveal
                 heartShower();
