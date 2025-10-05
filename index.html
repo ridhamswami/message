@@ -1,25 +1,33 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Love Note</title>
-    <link rel="stylesheet" href="style.css">
-    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
-    <script src="script.js" defer></script> <!-- Link to your JS file -->
-</head> 
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Happy 3 Months Aryan 💖</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
 <body>
-    <div class="container">
-        <h1 class="header_text_one">Are You Dumb, Jatin?</h1>
-        <div class="gif_container">
-            <img src="https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExdHlmN3R0c2hjaTF3bWltbXk5czN3Z3R0aTNtZmU2N2psaXh3ejRjaiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/Pgy4Na8aRyBuE/giphy.gif" alt="Cute animated illustration">
-        </div>
-        
-        <div class="buttons">
-            <button class="btn" id="yesButton">Yes</button>
-            <button class="btn" id="noButton">No</button>
-        </div>
+  <div class="container">
+    <h1 class="title">Happy 3 Months, Aryan! 💕</h1>
+    <p class="subtitle">Three months of laughter, memories, and moments to treasure forever ✨</p>
+
+    <button id="startBtn" class="btn">Click to Begin 💌</button>
+
+    <div id="surprise" class="hidden">
+      <div class="message-card">
+        <h2>Dear Aryan,</h2>
+        <p>
+          It’s been three amazing months — filled with fun, care, and countless smiles.  
+          You make every moment brighter! 🌈  
+          Here’s to many more months of togetherness and happiness 💫
+        </p>
+        <p class="signature">With love, ❤️</p>
+      </div>
+      <button id="confettiBtn" class="btn">Celebrate 🎉</button>
     </div>
+  </div>
+
+  <canvas id="confetti-canvas"></canvas>
+  <script src="script.js"></script>
 </body>
 </html>
