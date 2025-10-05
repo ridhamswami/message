@@ -1,33 +1,378 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Happy 3 Months Aryan 💖</title>
-  <link rel="stylesheet" href="style.css" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3 Months with Aryan ❤️</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Configure Tailwind to use the Inter font */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap');
+        
+        :root {
+            --primary-color: #f9a8d4; /* Pink 400 */
+            --secondary-color: #fef08a; /* Yellow 200 */
+            --bg-color: #1f2937; /* Gray 800 */
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            min-height: 100vh;
+        }
+
+        /* Custom Heart Animation */
+        .heart-particle {
+            position: absolute;
+            color: var(--primary-color);
+            font-size: 20px;
+            animation: fall linear forwards;
+            pointer-events: none;
+            user-select: none;
+            transform: scale(0);
+        }
+
+        @keyframes fall {
+            0% {
+                transform: translateY(0) rotate(0deg) scale(0.5);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(100vh) rotate(360deg) scale(1.5);
+                opacity: 0;
+            }
+        }
+
+        /* Custom styling for the primary button */
+        .anniversary-button {
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(249, 168, 212, 0.4);
+        }
+
+        .anniversary-button:hover {
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 6px 20px rgba(249, 168, 212, 0.6);
+        }
+        
+        .anniversary-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+    </style>
 </head>
-<body>
-  <div class="container">
-    <h1 class="title">Happy 3 Months, Aryan! 💕</h1>
-    <p class="subtitle">Three months of laughter, memories, and moments to treasure forever ✨</p>
+<body class="flex items-center justify-center p-4">
 
-    <button id="startBtn" class="btn">Click to Begin 💌</button>
+    <!-- Main Container Card -->
+    <div id="card" class="bg-gray-900 border-4 border-pink-400 p-6 sm:p-10 rounded-3xl w-full max-w-lg text-center shadow-2xl transition-all duration-500">
+        
+        <h1 id="main-title" class="text-3xl sm:text-4xl font-extrabold text-white mb-6">
+            ✨ Happy 3 Month Anniversary, Aryan! ✨
+        </h1>
 
-    <div id="surprise" class="hidden">
-      <div class="message-card">
-        <h2>Dear Aryan,</h2>
-        <p>
-          It’s been three amazing months — filled with fun, care, and countless smiles.  
-          You make every moment brighter! 🌈  
-          Here’s to many more months of togetherness and happiness 💫
-        </p>
-        <p class="signature">With love, ❤️</p>
-      </div>
-      <button id="confettiBtn" class="btn">Celebrate 🎉</button>
+        <!-- Memory Display Area -->
+        <div id="memory-display" class="bg-gray-800 p-4 sm:p-6 rounded-xl border border-pink-500 mb-8 min-h-[100px] flex items-center justify-center">
+            <p id="current-memory" class="text-lg sm:text-xl text-yellow-200 font-semibold italic transition-opacity duration-500 opacity-100">
+                Click the button below to unlock your first secret memory!
+            </p>
+        </div>
+
+        <!-- Progress Counter -->
+        <div id="progress-container" class="mb-6 text-pink-300 font-medium text-sm sm:text-base transition-opacity duration-300">
+            Memory Progress: <span id="memory-counter" class="text-white font-bold">0</span> / <span id="total-memories"></span>
+        </div>
+
+        <!-- Interactive Button -->
+        <button 
+            id="reveal-button"
+            class="anniversary-button w-full px-6 py-3 bg-pink-500 hover:bg-pink-600 text-white font-bold rounded-full text-lg focus:outline-none focus:ring-4 focus:ring-pink-500 focus:ring-opacity-50"
+            onclick="revealNextMemory()">
+            Unlock Memory (Click Me!)
+        </button>
+
+        <!-- Final Message Area -->
+        <div id="final-message-container" class="mt-8 p-4 bg-yellow-200/20 rounded-lg hidden">
+            <p class="text-xl sm:text-2xl font-bold text-yellow-100">
+                And finally...
+            </p>
+            <p id="final-message" class="text-white mt-2 text-base sm:text-lg">
+                </p>
+        </div>
     </div>
-  </div>
 
-  <canvas id="confetti-canvas"></canvas>
-  <script src="script.js"></script>
+    <script>
+        const memories = [
+            "Remember that first time we talked for hours? I knew right then you were special.",
+            "I love how you can always make me laugh, even on my worst days. You're my favorite comedian!",
+            "Thank you for being the most supportive and caring person. My life is so much better with you in it.",
+            "You are smart, kind, and you have the cutest smile. You make every day feel like a dream.",
+            "I've loved every moment of these past three months. Here's to many, many more, my love! ❤️"
+        ];
+        
+        let clickCount = 0;
+        const memoryCounter = document.getElementById('memory-counter');
+        const totalMemories = document.getElementById('total-memories');
+        const currentMemory = document.getElementById('current-memory');
+        const revealButton = document.getElementById('reveal-button');
+        const finalMessageContainer = document.getElementById('final-message-container');
+        const finalMessage = document.getElementById('final-message');
+        const card = document.getElementById('card');
+
+        // Set the total number of memories
+        totalMemories.textContent = memories.length;
+
+        /**
+         * Converts a Base64 string (PCM audio data) to an ArrayBuffer.
+         * @param {string} base64 The base64 encoded string.
+         * @returns {ArrayBuffer} The converted ArrayBuffer.
+         */
+        function base64ToArrayBuffer(base64) {
+            const binaryString = atob(base64);
+            const len = binaryString.length;
+            const bytes = new Uint8Array(len);
+            for (let i = 0; i < len; i++) {
+                bytes[i] = binaryString.charCodeAt(i);
+            }
+            return bytes.buffer;
+        }
+
+        /**
+         * Converts PCM audio data to a WAV Blob.
+         * @param {Int16Array} pcmData 16-bit PCM audio data.
+         * @param {number} sampleRate Sample rate of the audio.
+         * @returns {Blob} The WAV audio Blob.
+         */
+        function pcmToWav(pcmData, sampleRate) {
+            const numChannels = 1;
+            const bytesPerSample = 2;
+            const blockAlign = numChannels * bytesPerSample;
+            const byteRate = sampleRate * blockAlign;
+            
+            // Calculate file size and data chunk size
+            const dataSize = pcmData.byteLength;
+            const buffer = new ArrayBuffer(44 + dataSize);
+            const view = new DataView(buffer);
+            let offset = 0;
+
+            // RIFF chunk
+            writeString(view, offset, 'RIFF'); offset += 4;
+            view.setUint32(offset, 36 + dataSize, true); offset += 4;
+            writeString(view, offset, 'WAVE'); offset += 4;
+
+            // fmt chunk
+            writeString(view, offset, 'fmt '); offset += 4;
+            view.setUint32(offset, 16, true); offset += 4; // Sub-chunk size: 16
+            view.setUint16(offset, 1, true); offset += 2; // Audio format (PCM): 1
+            view.setUint16(offset, numChannels, true); offset += 2; // Number of channels
+            view.setUint32(offset, sampleRate, true); offset += 4; // Sample rate
+            view.setUint32(offset, byteRate, true); offset += 4; // Byte rate
+            view.setUint16(offset, blockAlign, true); offset += 2; // Block align
+            view.setUint16(offset, bytesPerSample * 8, true); offset += 2; // Bits per sample
+
+            // data chunk
+            writeString(view, offset, 'data'); offset += 4;
+            view.setUint32(offset, dataSize, true); offset += 4; // Data size
+
+            // Write PCM data
+            const pcmBytes = new Uint8Array(buffer, offset);
+            pcmBytes.set(new Uint8Array(pcmData.buffer));
+
+            return new Blob([view], { type: 'audio/wav' });
+        }
+
+        /** Helper function to write strings to DataView */
+        function writeString(view, offset, string) {
+            for (let i = 0; i < string.length; i++) {
+                view.setUint8(offset + i, string.charCodeAt(i));
+            }
+        }
+
+        /**
+         * Plays audio from a URL and returns a Promise that resolves when playback ends or errors.
+         * @param {string | null} audioUrl The URL of the audio file.
+         * @returns {Promise<void>} A promise that resolves when the audio ends.
+         */
+        function playAudio(audioUrl) {
+            if (!audioUrl) return Promise.resolve();
+            
+            return new Promise(resolve => {
+                const audio = new Audio(audioUrl);
+                // Resolve the promise when playback finishes or if an error occurs (to unlock the UI)
+                audio.onended = () => resolve();
+                audio.onerror = () => {
+                    console.error("Audio playback error.");
+                    resolve(); 
+                };
+                audio.play().catch(e => {
+                    console.warn("Autoplay was prevented (interaction needed), unlocking UI.");
+                    resolve();
+                });
+            });
+        }
+        
+        /**
+         * Calls the Gemini TTS API to convert text to speech and returns the audio URL.
+         * @param {string} text The text to synthesize.
+         * @returns {Promise<string | null>} The audio URL or null on failure.
+         */
+        async function speakMemory(text) {
+            const apiKey = ""; 
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${apiKey}`;
+
+            const payload = {
+                contents: [{
+                    parts: [{ text: `Say cheerfully: ${text}` }]
+                }],
+                generationConfig: {
+                    responseModalities: ["AUDIO"],
+                    speechConfig: {
+                        voiceConfig: {
+                            prebuiltVoiceConfig: { voiceName: "Puck" } // Using 'Puck', an Upbeat, female-sounding voice
+                        }
+                    }
+                },
+                model: "gemini-2.5-flash-preview-tts"
+            };
+
+            const maxRetries = 5;
+            let currentDelay = 1000; 
+
+            for (let i = 0; i < maxRetries; i++) {
+                try {
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (response.status === 429) {
+                        await new Promise(resolve => setTimeout(resolve, currentDelay));
+                        currentDelay *= 2; 
+                        continue; 
+                    }
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+
+                    const result = await response.json();
+                    const part = result?.candidates?.[0]?.content?.parts?.[0];
+                    const audioData = part?.inlineData?.data;
+                    const mimeType = part?.inlineData?.mimeType;
+
+                    if (audioData && mimeType && mimeType.startsWith("audio/L16")) {
+                        const sampleRateMatch = mimeType.match(/rate=(\d+)/);
+                        const sampleRate = sampleRateMatch ? parseInt(sampleRateMatch[1], 10) : 16000;
+                        
+                        const pcmData = base64ToArrayBuffer(audioData);
+                        const pcm16 = new Int16Array(pcmData);
+                        const wavBlob = pcmToWav(pcm16, sampleRate);
+                        const audioUrl = URL.createObjectURL(wavBlob);
+                        
+                        return audioUrl; // Return the URL
+                    } else {
+                        console.error("TTS response did not contain valid audio data.");
+                        return null;
+                    }
+                } catch (error) {
+                    console.error("Error calling TTS API or processing response:", error);
+                    if (i < maxRetries - 1) {
+                         await new Promise(resolve => setTimeout(resolve, currentDelay));
+                         currentDelay *= 2;
+                    } else {
+                        return null; // All retries failed
+                    }
+                }
+            }
+            return null;
+        }
+
+
+        /**
+         * Creates a shower of hearts animated to fall across the screen.
+         */
+        function heartShower() {
+            // Disable the button permanently after the final action
+            revealButton.disabled = true;
+
+            const body = document.body;
+            const numHearts = 30;
+
+            for (let i = 0; i < numHearts; i++) {
+                const heart = document.createElement('div');
+                heart.className = 'heart-particle';
+                heart.innerHTML = '❤️'; 
+
+                const x = Math.random() * 100; 
+                const duration = Math.random() * 2 + 3; 
+                const delay = Math.random() * 1; 
+
+                heart.style.left = `${x}vw`;
+                heart.style.animationDuration = `${duration}s`;
+                heart.style.animationDelay = `${delay}s`;
+                
+                body.appendChild(heart);
+
+                setTimeout(() => {
+                    heart.remove();
+                }, (duration + delay) * 1000);
+            }
+        }
+
+        /**
+         * Main function to handle the button click and reveal the next memory.
+         * Now uses await to prevent the button from being usable until the audio finishes.
+         */
+        async function revealNextMemory() {
+            if (clickCount >= memories.length) return; // Stop if already finished
+
+            // 1. Disable button while processing/playing
+            revealButton.disabled = true;
+            revealButton.textContent = 'Processing... please wait';
+            
+            const memoryText = memories[clickCount];
+
+            // 2. Display the current memory
+            currentMemory.textContent = memoryText;
+            memoryCounter.textContent = clickCount + 1;
+            
+            // 3. Fetch the audio and wait for it to finish playing
+            const audioUrl = await speakMemory(memoryText);
+            await playAudio(audioUrl); // This awaits the full audio playback
+
+            clickCount++;
+
+            // 4. Re-enable button and update state for the next step
+            if (clickCount < memories.length) {
+                // Not finished yet - set up for the next click
+                revealButton.textContent = `Unlock Memory ${clickCount + 1} / ${memories.length}`;
+                revealButton.disabled = false;
+            } else {
+                // FINAL STEP
+                
+                // Update the card appearance for the grand finale
+                card.classList.remove('border-pink-400');
+                card.classList.add('border-yellow-200');
+                card.classList.add('animate-pulse'); 
+
+                // Display the final message
+                finalMessage.textContent = "Happy 3 months, my wonderful Aryan. I've enjoyed every moment, and I can't wait for what's next! Love you always. - [Your Name]";
+                finalMessageContainer.classList.remove('hidden');
+                
+                // Final button state (enabled for the last interaction)
+                revealButton.textContent = "Now, I just need a big hug! 🤗";
+                revealButton.onclick = heartShower; // New function for the final click
+                revealButton.classList.remove('bg-pink-500');
+                revealButton.classList.add('bg-yellow-500');
+                revealButton.disabled = false; // Enable for the final click to trigger heart shower
+                
+                // Trigger the heart shower immediately as well, just for extra love!
+                heartShower();
+            }
+        }
+    </script>
+
 </body>
 </html>
