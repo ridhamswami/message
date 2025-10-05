@@ -118,8 +118,8 @@
                 And finally, one special picture...
             </p>
             <div class="flex flex-col items-center">
-                 <!-- Final Image: PASTE the raw URL of your final photo here! (REQUIRED) -->
-                <img id="final-image" 
+                 <!-- Image Placeholder using the specific final image URL -->
+                 <img id="final-image" 
                      src="https://raw.githubusercontent.com/ridhamswami/message/main/assets/IMG-20251005-WA0179.jpg" 
                      alt="Ridham and Aryan together" 
                      class="rounded-xl shadow-lg w-full max-w-xs h-auto object-cover border-4 border-yellow-500 mb-4" 
@@ -133,8 +133,7 @@
 
     <script>
         // --- CONFIGURATION ---
-        // Final image URL configuration (matches the HTML 'src' above)
-        // PASTE THE RAW GITHUB LINK FOR YOUR FINAL PHOTO HERE
+        // Final image URL configuration (Updated to the raw GitHub link)
         const finalImageContentId = "https://raw.githubusercontent.com/ridhamswami/message/main/assets/IMG-20251005-WA0179.jpg"; 
         
         const memories = [
@@ -145,15 +144,13 @@
             "I've loved every moment of these past three months. Here's to many, many more, my love! ❤️"
         ];
         
-        // --- YOUR MEMORY IMAGES (PASTE RAW GITHUB URLs HERE) ---
-        // The file names here must exactly match what you uploaded to your assets folder!
+        // --- Placeholder Images (REPLACE THESE with your actual image URLs!) ---
         const memoryImages = [
-            // Example: replace with "https://yourimagehost.com/photo1.jpg"
             "https://raw.githubusercontent.com/ridhamswami/message/main/assets/IMG-20251005-WA0176.jpg", 
             "https://raw.githubusercontent.com/ridhamswami/message/main/assets/IMG-20251005-WA0177.jpg",
             "https://raw.githubusercontent.com/ridhamswami/message/main/assets/IMG-20251005-WA0180.jpg",
             "https://raw.githubusercontent.com/ridhamswami/message/main/assets/IMG-20251005-WA0181.jpg",
-            "https://raw.githubusercontent.com/ridhamswami/message/main/assets/IMG-20251005-WA0179.jpg" // Note: This is now the same as the final image, but the logic handles showing it only once correctly.
+            "https://raw.githubusercontent.com/ridhamswami/message/main/assets/IMG-20251005-WA0179.jpg"
         ];
         
         let clickCount = 0;
