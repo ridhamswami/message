@@ -65,12 +65,30 @@
 </head>
 <body class="flex items-center justify-center p-4">
 
+    <!-- Background Audio Element (Starts muted to comply with autoplay rules) -->
+    <audio id="bg-music" loop autoplay muted>
+        <!-- NOTE: The URL below is a royalty-free placeholder. 
+             You MUST replace it with a non-copyrighted version of "For a Reason" 
+             or another track you have rights to use! -->
+        <source id="music-source" src="https://s3-us-west-2.amazonaws.com/s.cdpn.io/191814/elvispresleyfallinginlove).mp3" type="audio/mp3">
+        Your browser does not support the audio element.
+    </audio>
+
     <!-- Main Container Card -->
     <div id="card" class="bg-gray-900 border-4 border-pink-400 p-6 sm:p-10 rounded-3xl w-full max-w-lg text-center shadow-2xl transition-all duration-500">
         
         <h1 id="main-title" class="text-3xl sm:text-4xl font-extrabold text-white mb-6">
             ✨ Happy 3 Month Anniversary, Aryan! ✨
         </h1>
+
+        <!-- Music Control -->
+        <div class="mb-6">
+             <button 
+                id="music-toggle-button"
+                class="px-4 py-2 bg-pink-600 hover:bg-pink-700 text-white font-semibold rounded-full text-sm focus:outline-none focus:ring-4 focus:ring-pink-500 focus:ring-opacity-50 transition-all">
+                🔈 Play Music (Click to Start)
+            </button>
+        </div>
 
         <!-- Memory Display Area -->
         <div id="memory-display" class="bg-gray-800 p-4 sm:p-6 rounded-xl border border-pink-500 mb-8 min-h-[120px] flex flex-col items-center justify-center">
@@ -80,10 +98,8 @@
                 Click the button below to unlock your first secret memory!
             </p>
         </div>
-
-        <!-- NOTE: The 'Love Lock Decoder' puzzle area has been removed for a simpler flow. -->
         
-        <!-- Progress Counter (Kept for continuity) -->
+        <!-- Progress Counter -->
         <div id="progress-container" class="mb-6 text-pink-300 font-medium text-sm sm:text-base transition-opacity duration-300">
             Memory Progress: <span id="memory-counter" class="text-white font-bold">0</span> / <span id="total-memories"></span>
         </div>
@@ -116,7 +132,7 @@
     </div>
 
     <script>
-        // Use the contentFetchId for the final image
+        // --- CONFIGURATION ---
         const finalImageContentId = "uploaded:image_bd836a.jpg-75cefe48-2673-4e28-b293-e01fda56e57e";
         
         const memories = [
@@ -127,9 +143,18 @@
             "I've loved every moment of these past three months. Here's to many, many more, my love! ❤️"
         ];
         
+        // Placeholder GIFs
+        const memoryGifs = [
+            "https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExYTlkY2Y1NjVwNG5kdW5vNmFjZWZ3OHV6ZjV0cGV3ZGFxNmd2bW5xZSZlcD12MV9pbnRlcm5hbF9naWYmY3Q9Zw/26FLdmIp6wJr91Jss/giphy.gif",
+            "https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExM2F3bXN5ZWQ5Zml6N3N1c2c3ZzU3bTM2bm9yd244M3hjaW51NWRpbiZlcD12MV9pbnRlcm5hbF9naWYmY3Q9Zw/3oz8xAFtqoOUUrsh8I/giphy.gif",
+            "https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExcm52djczNnFwa2x0Z3R4cnA0d3A3bDBldmFub212Mmx2MW93eHlnYSZlcD12MV9pbnRlcm5hbF9naWYmY3Q9Zw/w8t7g0T1d3Bv3qQY0Y/giphy.gif",
+            "https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExd2R4d3B2MXc0bWJndG44cnJmOTJtZmYyMnJmcjZ1NG13YXlncGJwZyZlcD12MV9pbnRlcm5hbF9naWYmY3Q9Zw/l0O9z0Q57z6Jm1B1e/giphy.gif",
+            "https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExbDB5OGE3NjF1d3ZzdG50MnZ6NnN3Z3UwcXpkc2o1Z2o1ZHpsZzd6eSZlcD12MV9pbnRlcm5hbF9naWYmY3Q9Zw/l4pTfx2qLsKiUqsdq/giphy.gif"
+        ];
+        
         let clickCount = 0;
 
-        // DOM Elements
+        // --- DOM Elements ---
         const memoryCounter = document.getElementById('memory-counter');
         const totalMemories = document.getElementById('total-memories');
         const currentMemory = document.getElementById('current-memory');
@@ -139,189 +164,44 @@
         const card = document.getElementById('card');
         const memoryGif = document.getElementById('memory-gif');
         const finalImageElement = document.getElementById('final-image');
+        const bgMusic = document.getElementById('bg-music');
+        const musicToggleButton = document.getElementById('music-toggle-button');
         
-        // Set the total number of memories
+        // Initialize
         totalMemories.textContent = memories.length;
 
-        // --- UTILITY FUNCTIONS ---
+        // --- MUSIC CONTROL ---
 
-        function base64ToArrayBuffer(base64) {
-            const binaryString = atob(base64);
-            const len = binaryString.length;
-            const bytes = new Uint8Array(len);
-            for (let i = 0; i < len; i++) {
-                bytes[i] = binaryString.charCodeAt(i);
-            }
-            return bytes.buffer;
-        }
-
-        function pcmToWav(pcmData, sampleRate) {
-            const numChannels = 1;
-            const bytesPerSample = 2;
-            const blockAlign = numChannels * bytesPerSample;
-            const byteRate = sampleRate * blockAlign;
-            const dataSize = pcmData.byteLength;
-            const buffer = new ArrayBuffer(44 + dataSize);
-            const view = new DataView(buffer);
-            let offset = 0;
-
-            writeString(view, offset, 'RIFF'); offset += 4;
-            view.setUint32(offset, 36 + dataSize, true); offset += 4;
-            writeString(view, offset, 'WAVE'); offset += 4;
-            writeString(view, offset, 'fmt '); offset += 4;
-            view.setUint32(offset, 16, true); offset += 4;
-            view.setUint16(offset, 1, true); offset += 2;
-            view.setUint16(offset, numChannels, true); offset += 2;
-            view.setUint32(offset, sampleRate, true); offset += 4;
-            view.setUint32(offset, byteRate, true); offset += 4;
-            view.setUint16(offset, blockAlign, true); offset += 2;
-            view.setUint16(offset, bytesPerSample * 8, true); offset += 2;
-            writeString(view, offset, 'data'); offset += 4;
-            view.setUint32(offset, dataSize, true); offset += 4;
-
-            const pcmBytes = new Uint8Array(buffer, offset);
-            pcmBytes.set(new Uint8Array(pcmData.buffer));
-
-            return new Blob([view], { type: 'audio/wav' });
-        }
-
-        function writeString(view, offset, string) {
-            for (let i = 0; i < string.length; i++) {
-                view.setUint8(offset + i, string.charCodeAt(i));
-            }
-        }
-
-        /**
-         * Uses the Web Audio API (AudioContext) for robust playback and explicitly resumes 
-         * the context to defeat browser autoplay suspension, ensuring the audio plays.
-         */
-        async function playAudio(audioUrl) {
-            if (!audioUrl) return Promise.resolve();
-            
-            const AudioContext = window.AudioContext || window.webkitAudioContext;
-            if (!AudioContext) {
-                console.error("Web Audio API not supported.");
-                URL.revokeObjectURL(audioUrl);
-                return Promise.resolve();
-            }
-
-            // Create context inside the user interaction handler
-            const context = new AudioContext(); 
-
-            try {
-                // *** CRITICAL FIX: Resume Context to beat browser autoplay restrictions ***
-                if (context.state === 'suspended') {
-                    await context.resume();
-                }
-
-                // 1. Fetch the audio blob data
-                const response = await fetch(audioUrl);
-                const arrayBuffer = await response.arrayBuffer();
-
-                // 2. Decode the audio data
-                const audioBuffer = await context.decodeAudioData(arrayBuffer);
-
-                // 3. Create a source node
-                const source = context.createBufferSource();
-                source.buffer = audioBuffer;
-                source.connect(context.destination);
-
-                // 4. Play the audio and set up cleanup/resolution
-                return new Promise(resolve => {
-                    // Cleanup function to run on success or failure
-                    const cleanupAndResolve = () => {
-                        URL.revokeObjectURL(audioUrl); // Clean up blob URL
-                        context.close().catch(e => console.error("Error closing AudioContext:", e));
-                        resolve();
-                    };
-
-                    source.onended = cleanupAndResolve; // Resolve on successful end
-
-                    // Start playback
-                    source.start(0); 
+        // Function to handle the music toggle (satisfies browser policy)
+        function toggleMusic() {
+            if (bgMusic.muted) {
+                // If muted, attempt to unmute and play
+                bgMusic.muted = false;
+                bgMusic.play().then(() => {
+                    musicToggleButton.textContent = '🔊 Music Playing (Click to Mute)';
+                    musicToggleButton.classList.remove('bg-pink-600');
+                    musicToggleButton.classList.add('bg-green-600');
+                }).catch(error => {
+                    console.error("Autoplay/Play was prevented:", error);
+                    // If it still fails, mute it back and notify the user
+                    bgMusic.muted = true;
+                    musicToggleButton.textContent = '🚫 Music Blocked (Try another browser)';
+                    musicToggleButton.classList.remove('bg-pink-600');
+                    musicToggleButton.classList.add('bg-red-600');
                 });
-
-            } catch (e) {
-                // If decoding or starting fails, ensure the promise resolves so the app continues
-                console.error("Web Audio API Playback Failed, explicitly resolving promise after cleanup:", e);
-                URL.revokeObjectURL(audioUrl); // Ensure cleanup
-                context.close().catch(e => console.error("Error closing AudioContext on failure:", e));
-                return Promise.resolve(); 
+            } else {
+                // If playing, mute it
+                bgMusic.muted = true;
+                musicToggleButton.textContent = '🔈 Play Music (Click to Start)';
+                musicToggleButton.classList.remove('bg-green-600');
+                musicToggleButton.classList.add('bg-pink-600');
             }
         }
-        
-        async function speakMemory(text) {
-            const apiKey = ""; 
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${apiKey}`;
 
-            const payload = {
-                contents: [{
-                    parts: [{ text: `Say with a sweet and romantic tone: ${text}` }]
-                }],
-                generationConfig: {
-                    responseModalities: ["AUDIO"],
-                    speechConfig: {
-                        voiceConfig: {
-                            prebuiltVoiceConfig: { voiceName: "Leda" } // Youthful/Sweet voice for a romantic tone
-                        }
-                    }
-                },
-                model: "gemini-2.5-flash-preview-tts"
-            };
+        // Attach the music toggle to the button
+        musicToggleButton.addEventListener('click', toggleMusic);
 
-            const maxRetries = 5;
-            let currentDelay = 1000; 
-
-            for (let i = 0; i < maxRetries; i++) {
-                try {
-                    const response = await fetch(apiUrl, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(payload)
-                    });
-
-                    if (response.status === 429) {
-                        await new Promise(resolve => setTimeout(resolve, currentDelay));
-                        currentDelay *= 2; 
-                        continue; 
-                    }
-
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
-                    }
-
-                    const result = await response.json();
-                    const part = result?.candidates?.[0]?.content?.parts?.[0];
-                    const audioData = part?.inlineData?.data;
-                    const mimeType = part?.inlineData?.mimeType;
-
-                    if (audioData && mimeType && mimeType.startsWith("audio/L16")) {
-                        const sampleRateMatch = mimeType.match(/rate=(\d+)/);
-                        const sampleRate = sampleRateMatch ? parseInt(sampleRateMatch[1], 10) : 16000;
-                        
-                        const pcmData = base64ToArrayBuffer(audioData);
-                        const pcm16 = new Int16Array(pcmData);
-                        const wavBlob = pcmToWav(pcm16, sampleRate);
-                        const audioUrl = URL.createObjectURL(wavBlob);
-                        
-                        return audioUrl; 
-                    } else {
-                        console.error("TTS response did not contain valid audio data.");
-                        return null;
-                    }
-                } catch (error) {
-                    console.error("Error calling TTS API or processing response:", error);
-                    if (i < maxRetries - 1) {
-                         await new Promise(resolve => setTimeout(resolve, currentDelay));
-                         currentDelay *= 2;
-                    } else {
-                        return null; 
-                    }
-                }
-            }
-            return null;
-        }
-
+        // --- UTILITY FUNCTIONS ---
 
         function heartShower() {
             revealButton.disabled = true;
@@ -349,20 +229,11 @@
             }
         }
 
-        // --- CORE FLOW LOGIC (Simplified) ---
-
-        // Placeholder GIFs (REPLACE THESE WITH YOUR OWN GIF URLS for more effort!)
-        const memoryGifs = [
-            "https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExYTlkY2Y1NjVwNG5kdW5vNmFjZWZ3OHV6ZjV0cGV3ZGFxNmd2bW5xZSZlcD12MV9pbnRlcm5hbF9naWYmY3Q9Zw/26FLdmIp6wJr91Jss/giphy.gif",
-            "https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExM2F3bXN5ZWQ5Zml6N3N1c2c3ZzU3bTM2bm9yd244M3hjaW51NWRpbiZlcD12MV9pbnRlcm5hbF9naWYmY3Q9Zw/3oz8xAFtqoOUUrsh8I/giphy.gif",
-            "https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExcm52djczNnFwa2x0Z3R4cnA0d3A3bDBldmFub212Mmx2MW93eHlnYSZlcD12MV9pbnRlcm5hbF9naWYmY3Q9Zw/w8t7g0T1d3Bv3qQY0Y/giphy.gif",
-            "https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExd2R4d3B2MXc0bWJndG44cnJmOTJtZmYyMnJmcjZ1NG13YXlncGJwZyZlcD12MV9pbnRlcm5hbF9naWYmY3Q9Zw/l0O9z0Q57z6Jm1B1e/giphy.gif",
-            "https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExbDB5OGE3NjF1d3ZzdG50MnZ6NnN3Z3UwcXpkc2o1Z2o1ZHpsZzd6eSZlcD12MV9pbnRlcm5hbF9naWYmY3Q9Zw/l4pTfx2qLsKiUqsdq/giphy.gif"
-        ];
+        // --- CORE FLOW LOGIC ---
 
         /**
          * Main function to handle the button click and reveal the next memory.
-         * Now directly executes the memory reveal without a decoding step.
+         * Now uses instant text display instead of waiting for TTS.
          */
         async function revealNextMemory() {
             // Check if we have revealed all memories and should trigger the final action
@@ -371,13 +242,13 @@
                 return;
             }
 
-            // 1. Disable button and show processing
+            // 1. Disable button during transition
             revealButton.disabled = true;
-            revealButton.textContent = 'Fetching Voice... Please Wait.';
+            revealButton.textContent = 'Unlocking Memory...';
             
             const memoryText = memories[clickCount];
 
-            // 2. Display the current memory and GIF
+            // 2. Display the current memory and GIF instantly
             currentMemory.textContent = memoryText;
             memoryCounter.textContent = clickCount + 1;
             
@@ -385,12 +256,8 @@
             memoryGif.src = memoryGifs[clickCount];
             memoryGif.classList.remove('hidden');
             
-            // 3. Fetch the audio and wait for it to finish playing
-            const audioUrl = await speakMemory(memoryText);
-            revealButton.textContent = 'Playing Memory Audio...';
-            
-            // Wait for the audio to play completely or fail, but ensure it tries to play robustly.
-            await playAudio(audioUrl); 
+            // 3. Wait a moment for visual effect (no audio delay needed now)
+            await new Promise(resolve => setTimeout(resolve, 500));
 
             clickCount++;
 
@@ -401,6 +268,11 @@
                 revealButton.disabled = false;
             } else {
                 // FINAL STEP
+                
+                // Stop the background music for the final message, if it was playing
+                if (!bgMusic.muted) {
+                     bgMusic.pause();
+                }
                 
                 // Update the card appearance for the grand finale
                 card.classList.remove('border-pink-400');
@@ -413,12 +285,12 @@
                 memoryGif.classList.add('hidden'); // Hide the last GIF
                 finalImageElement.classList.remove('hidden'); // Ensure final image is shown
                 
-                // Final button state (enabled for the last interaction)
+                // Final button state
                 revealButton.textContent = "Now, I just need a big hug! 🤗";
                 revealButton.onclick = heartShower; // New function for the final click
                 revealButton.classList.remove('bg-pink-500');
                 revealButton.classList.add('bg-yellow-500');
-                revealButton.disabled = false; // Enable for the final click to trigger heart shower
+                revealButton.disabled = false; 
                 
                 // Trigger the heart shower immediately as well, just for extra love!
                 heartShower();
