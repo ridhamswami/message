@@ -192,14 +192,12 @@
         }
 
         /**
-         * Uses the Web Audio API (AudioContext) for more robust playback,
-         * which is necessary to overcome strict browser autoplay restrictions
-         * when playing dynamically generated audio blobs.
+         * Uses the Web Audio API (AudioContext) for robust playback and explicitly resumes 
+         * the context to defeat browser autoplay suspension, ensuring the audio plays.
          */
         async function playAudio(audioUrl) {
             if (!audioUrl) return Promise.resolve();
             
-            // Check for Web Audio API support
             const AudioContext = window.AudioContext || window.webkitAudioContext;
             if (!AudioContext) {
                 console.error("Web Audio API not supported.");
@@ -207,9 +205,15 @@
                 return Promise.resolve();
             }
 
-            const context = new AudioContext();
+            // Create context inside the user interaction handler
+            const context = new AudioContext(); 
 
             try {
+                // *** CRITICAL FIX: Resume Context to beat browser autoplay restrictions ***
+                if (context.state === 'suspended') {
+                    await context.resume();
+                }
+
                 // 1. Fetch the audio blob data
                 const response = await fetch(audioUrl);
                 const arrayBuffer = await response.arrayBuffer();
@@ -222,21 +226,27 @@
                 source.buffer = audioBuffer;
                 source.connect(context.destination);
 
-                // 4. Play the audio and set up cleanup
+                // 4. Play the audio and set up cleanup/resolution
                 return new Promise(resolve => {
-                    source.onended = () => {
+                    // Cleanup function to run on success or failure
+                    const cleanupAndResolve = () => {
                         URL.revokeObjectURL(audioUrl); // Clean up blob URL
                         context.close().catch(e => console.error("Error closing AudioContext:", e));
                         resolve();
                     };
-                    source.start(0); // Start playback
+
+                    source.onended = cleanupAndResolve; // Resolve on successful end
+
+                    // Start playback
+                    source.start(0); 
                 });
 
             } catch (e) {
-                console.error("Web Audio API Playback Failed, attempting to close context:", e);
+                // If decoding or starting fails, ensure the promise resolves so the app continues
+                console.error("Web Audio API Playback Failed, explicitly resolving promise after cleanup:", e);
                 URL.revokeObjectURL(audioUrl); // Ensure cleanup
                 context.close().catch(e => console.error("Error closing AudioContext on failure:", e));
-                return Promise.resolve();
+                return Promise.resolve(); 
             }
         }
         
@@ -378,7 +388,8 @@
             // 3. Fetch the audio and wait for it to finish playing
             const audioUrl = await speakMemory(memoryText);
             revealButton.textContent = 'Playing Memory Audio...';
-            // Audio playback is triggered here by user interaction (the click), which enables it in most browsers.
+            
+            // Wait for the audio to play completely or fail, but ensure it tries to play robustly.
             await playAudio(audioUrl); 
 
             clickCount++;
