@@ -194,16 +194,27 @@
         function playAudio(audioUrl) {
             if (!audioUrl) return Promise.resolve();
             
+            // Create a promise to handle playback completion
             return new Promise(resolve => {
                 const audio = new Audio(audioUrl);
-                audio.onended = () => resolve();
-                audio.onerror = () => {
-                    console.error("Audio playback error.");
-                    resolve(); 
-                };
-                audio.play().catch(e => {
-                    console.warn("Autoplay was prevented (interaction needed), unlocking UI.");
+                
+                // Function to clean up the temporary blob URL and resolve the promise
+                const cleanup = () => {
+                    URL.revokeObjectURL(audioUrl); // IMPORTANT: Revoke the Blob URL to free up memory
                     resolve();
+                };
+
+                // Set cleanup for both success and error
+                audio.onended = cleanup;
+                audio.onerror = () => {
+                    console.error("Audio playback error. Revoking URL.");
+                    cleanup(); 
+                };
+                
+                // Attempt to play, handling potential browser restrictions (which would also trigger cleanup)
+                audio.play().catch(e => {
+                    console.warn("Audio playback failed (Autoplay prevented or other issue). Revoking URL.", e);
+                    cleanup();
                 });
             });
         }
@@ -346,6 +357,7 @@
             // 3. Fetch the audio and wait for it to finish playing
             const audioUrl = await speakMemory(memoryText);
             revealButton.textContent = 'Playing Memory Audio...';
+            // Audio playback is triggered here by user interaction (the click), which enables it in most browsers.
             await playAudio(audioUrl); 
 
             clickCount++;
