@@ -70,7 +70,7 @@
         <!-- NOTE: The URL below is a royalty-free placeholder. 
              You MUST replace it with a non-copyrighted version of "For a Reason" 
              or another track you have rights to use! -->
-        <source id="music-source" src="https://s3-us-west-2.amazonaws.com/s.cdpn.io/191814/elvispresleyfallinginlove).mp3" type="audio/mp3">
+        <source id="music-source" src="https://www.learningcontainer.com/wp-content/uploads/2020/02/Sample-MP3-File.mp3" type="audio/mp3">
         Your browser does not support the audio element.
     </audio>
 
@@ -143,13 +143,13 @@
             "I've loved every moment of these past three months. Here's to many, many more, my love! ❤️"
         ];
         
-        // Placeholder GIFs
+        // --- UPDATED ROMANTIC GIFS ---
         const memoryGifs = [
-            "https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExYTlkY2Y1NjVwNG5kdW5vNmFjZWZ3OHV6ZjV0cGV3ZGFxNmd2bW5xZSZlcD12MV9pbnRlcm5hbF9naWYmY3Q9Zw/26FLdmIp6wJr91Jss/giphy.gif",
-            "https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExM2F3bXN5ZWQ5Zml6N3N1c2c3ZzU3bTM2bm9yd244M3hjaW51NWRpbiZlcD12MV9pbnRlcm5hbF9naWYmY3Q9Zw/3oz8xAFtqoOUUrsh8I/giphy.gif",
-            "https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExcm52djczNnFwa2x0Z3R4cnA0d3A3bDBldmFub212Mmx2MW93eHlnYSZlcD12MV9pbnRlcm5hbF9naWYmY3Q9Zw/w8t7g0T1d3Bv3qQY0Y/giphy.gif",
-            "https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExd2R4d3B2MXc0bWJndG44cnJmOTJtZmYyMnJmcjZ1NG13YXlncGJwZyZlcD12MV9pbnRlcm5hbF9naWYmY3Q9Zw/l0O9z0Q57z6Jm1B1e/giphy.gif",
-            "https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExbDB5OGE3NjF1d3ZzdG50MnZ6NnN3Z3UwcXpkc2o1Z2o1ZHpsZzd6eSZlcD12MV9pbnRlcm5hbF9naWYmY3Q9Zw/l4pTfx2qLsKiUqsdq/giphy.gif"
+            "https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExcHJkYzVoYWgycTlpM3N2cDNub3h4N3dkY2JjOWM3ZDNrOGg5djQ5byZlcD12MV9pbnRlcm5hbF9naWYmY3Q9Zw/LrnC159R7FqIeQ4k6z/giphy.gif", // Cute couple animated love
+            "https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExYXAwa3Nvb2E1ejRkMmFkbmZ3b2FvazB3MWw5b241Z2d4YzlwbnJ0eSZlcD12MV9pbnRlcm5hbF9naWYmY3Q9Zw/uwuY2Vb93wX2M/giphy.gif", // Floating hearts animation
+            "https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExdzEzN2V4eGYwM2I3NW4yMmN0NTVpaWhra3h3eHN0cmliYW12Y3J0eSZlcD12MV9pbnRlcm5hbF9naWYmY3Q9Zw/F0f5r9J9L7F2eL2uXk/giphy.gif", // Animated animals in love (Rabbits)
+            "https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExZTRyY3Axd2ZqMjI3OHFjZGlrbWwzZ2xmbzVrbGZqNzFkMHNqczk0MSZlcD12MV9pbnRlcm5hbF9naWYmY3Q9Zw/l0MYt5ixJ3U04XoXu/giphy.gif", // "I Love You" text animation
+            "https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExZndjNnd5eG1paHZkbzVjMWd3M2Vob2t5d28xYm01eWk1Mnd1N2F0dCZlcD12MV9pbnRlcm5hbF9naWYmY3Q9Zw/XGP7fR4wVjJcWfGkGf/giphy.gif"  // Cute kissing animation
         ];
         
         let clickCount = 0;
@@ -269,10 +269,7 @@
             } else {
                 // FINAL STEP
                 
-                // Stop the background music for the final message, if it was playing
-                if (!bgMusic.muted) {
-                     bgMusic.pause();
-                }
+                // *** IMPORTANT CHANGE: Removed bgMusic.pause() to let the music loop forever ***
                 
                 // Update the card appearance for the grand finale
                 card.classList.remove('border-pink-400');
