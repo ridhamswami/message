@@ -79,7 +79,20 @@
             </p>
         </div>
 
-        <!-- Progress Counter -->
+        <!-- Puzzle Area (Initially Hidden) -->
+        <div id="puzzle-area" class="relative w-full h-40 bg-gray-700 rounded-xl border-4 border-dashed border-yellow-500 mb-6 hidden cursor-crosshair overflow-hidden p-2">
+            <!-- Instruction Text inside the puzzle area -->
+            <p id="puzzle-instructions" class="text-white text-sm font-bold opacity-70 mb-2">Find the Sweet Spot! Click rapidly near it to charge the memory lock.</p>
+            
+            <!-- Sweet Spot Target (Functionally active, visually minimal) -->
+            <div id="sweet-spot" class="absolute bg-pink-400/40 rounded-full w-10 h-10 border-2 border-pink-400" style="transition: all 0.1s; transform: scale(0.5); display: none;"></div>
+        </div>
+        
+        <!-- Progress Bar & Counter (Relocated below puzzle area) -->
+        <div id="progress-bar-container" class="w-full bg-gray-700 rounded-full h-4 mb-6 hidden">
+            <div id="progress-bar" class="bg-yellow-400 h-4 rounded-full transition-all duration-100 ease-linear" style="width: 0%"></div>
+        </div>
+
         <div id="progress-container" class="mb-6 text-pink-300 font-medium text-sm sm:text-base transition-opacity duration-300">
             Memory Progress: <span id="memory-counter" class="text-white font-bold">0</span> / <span id="total-memories"></span>
         </div>
@@ -112,6 +125,14 @@
         ];
         
         let clickCount = 0;
+        const MAX_PROGRESS = 100;
+        const SWEET_SPOT_RADIUS = 50; // Effective radius for scoring points
+        let puzzleActive = false;
+        let puzzleProgress = 0;
+        let sweetSpotX = 0;
+        let sweetSpotY = 0;
+
+        // DOM Elements
         const memoryCounter = document.getElementById('memory-counter');
         const totalMemories = document.getElementById('total-memories');
         const currentMemory = document.getElementById('current-memory');
@@ -119,15 +140,111 @@
         const finalMessageContainer = document.getElementById('final-message-container');
         const finalMessage = document.getElementById('final-message');
         const card = document.getElementById('card');
+        const puzzleArea = document.getElementById('puzzle-area');
+        const sweetSpot = document.getElementById('sweet-spot');
+        const progressBarContainer = document.getElementById('progress-bar-container');
+        const progressBar = document.getElementById('progress-bar');
+        const puzzleInstructions = document.getElementById('puzzle-instructions');
 
         // Set the total number of memories
         totalMemories.textContent = memories.length;
 
+        // --- PUZZLE LOGIC ---
+
         /**
-         * Converts a Base64 string (PCM audio data) to an ArrayBuffer.
-         * @param {string} base64 The base64 encoded string.
-         * @returns {ArrayBuffer} The converted ArrayBuffer.
+         * Sets up the puzzle area with a new randomized sweet spot.
          */
+        function setupPuzzle() {
+            if (puzzleActive) return;
+            puzzleActive = true;
+            puzzleProgress = 0;
+            progressBar.style.width = '0%';
+            
+            // Hide the button and show the puzzle elements
+            revealButton.classList.add('hidden');
+            puzzleArea.classList.remove('hidden');
+            progressBarContainer.classList.remove('hidden');
+            
+            currentMemory.textContent = "Find the Sweet Spot! Click rapidly inside the pink area to charge the memory lock!";
+
+            const areaRect = puzzleArea.getBoundingClientRect();
+            
+            // Calculate a random sweet spot position that is safely inside the area
+            // Offset by SWEET_SPOT_RADIUS to prevent half of the spot from being off-screen
+            sweetSpotX = Math.random() * (areaRect.width - SWEET_SPOT_RADIUS * 2) + SWEET_SPOT_RADIUS;
+            sweetSpotY = Math.random() * (areaRect.height - SWEET_SPOT_RADIUS * 2) + SWEET_SPOT_RADIUS;
+            
+            // Move the visible sweet spot (small pink circle) to the calculated location
+            sweetSpot.style.left = `${sweetSpotX - sweetSpot.offsetWidth / 2}px`;
+            sweetSpot.style.top = `${sweetSpotY - sweetSpot.offsetHeight / 2}px`;
+            sweetSpot.style.display = 'block'; // Make the visual target visible
+
+            // Attach click handler to the puzzle area
+            puzzleArea.addEventListener('click', puzzleClick);
+        }
+        
+        /**
+         * Handles the puzzle click event, updating progress based on proximity.
+         * @param {Event} event The click event.
+         */
+        function puzzleClick(event) {
+            if (!puzzleActive) return;
+
+            // Calculate click position relative to the puzzle area's top-left corner
+            const areaRect = puzzleArea.getBoundingClientRect();
+            const clickX = event.clientX - areaRect.left;
+            const clickY = event.clientY - areaRect.top;
+            
+            // Calculate distance between click and sweet spot center
+            const distance = Math.sqrt(
+                Math.pow(clickX - sweetSpotX, 2) + Math.pow(clickY - sweetSpotY, 2)
+            );
+            
+            let points = 0;
+            
+            if (distance < SWEET_SPOT_RADIUS) {
+                // Closer clicks give more points (Inverse relationship with distance)
+                points = 3 + (1 - (distance / SWEET_SPOT_RADIUS)) * 7; // Max 10 points for perfect hit
+                puzzleInstructions.textContent = "YES! Keep clicking the spot!";
+            } else {
+                points = 1; // Minimum points for clicking anywhere in the zone
+                puzzleInstructions.textContent = "Miss! Try to find the pink glow!";
+            }
+            
+            puzzleProgress += points;
+
+            // Ensure progress doesn't exceed the max
+            if (puzzleProgress > MAX_PROGRESS) {
+                puzzleProgress = MAX_PROGRESS;
+            }
+
+            // Update the visual progress bar
+            progressBar.style.width = `${(puzzleProgress / MAX_PROGRESS) * 100}%`;
+            
+            // Check if puzzle is solved
+            if (puzzleProgress >= MAX_PROGRESS) {
+                executeMemoryReveal();
+            }
+        }
+
+        /**
+         * Cleans up the puzzle elements and proceeds to the memory reveal.
+         */
+        function cleanupPuzzle() {
+            puzzleActive = false;
+            puzzleArea.removeEventListener('click', puzzleClick);
+
+            // Hide the puzzle elements
+            puzzleArea.classList.add('hidden');
+            progressBarContainer.classList.add('hidden');
+            sweetSpot.style.display = 'none';
+
+            // Show the button again
+            revealButton.classList.remove('hidden');
+        }
+
+        // --- TTS & UTILITY LOGIC (UNCHANGED) ---
+
         function base64ToArrayBuffer(base64) {
             const binaryString = atob(base64);
             const len = binaryString.length;
@@ -138,68 +255,47 @@
             return bytes.buffer;
         }
 
-        /**
-         * Converts PCM audio data to a WAV Blob.
-         * @param {Int16Array} pcmData 16-bit PCM audio data.
-         * @param {number} sampleRate Sample rate of the audio.
-         * @returns {Blob} The WAV audio Blob.
-         */
         function pcmToWav(pcmData, sampleRate) {
             const numChannels = 1;
             const bytesPerSample = 2;
             const blockAlign = numChannels * bytesPerSample;
             const byteRate = sampleRate * blockAlign;
-            
-            // Calculate file size and data chunk size
             const dataSize = pcmData.byteLength;
             const buffer = new ArrayBuffer(44 + dataSize);
             const view = new DataView(buffer);
             let offset = 0;
 
-            // RIFF chunk
             writeString(view, offset, 'RIFF'); offset += 4;
             view.setUint32(offset, 36 + dataSize, true); offset += 4;
             writeString(view, offset, 'WAVE'); offset += 4;
-
-            // fmt chunk
             writeString(view, offset, 'fmt '); offset += 4;
-            view.setUint32(offset, 16, true); offset += 4; // Sub-chunk size: 16
-            view.setUint16(offset, 1, true); offset += 2; // Audio format (PCM): 1
-            view.setUint16(offset, numChannels, true); offset += 2; // Number of channels
-            view.setUint32(offset, sampleRate, true); offset += 4; // Sample rate
-            view.setUint32(offset, byteRate, true); offset += 4; // Byte rate
-            view.setUint16(offset, blockAlign, true); offset += 2; // Block align
-            view.setUint16(offset, bytesPerSample * 8, true); offset += 2; // Bits per sample
-
-            // data chunk
+            view.setUint32(offset, 16, true); offset += 4;
+            view.setUint16(offset, 1, true); offset += 2;
+            view.setUint16(offset, numChannels, true); offset += 2;
+            view.setUint32(offset, sampleRate, true); offset += 4;
+            view.setUint32(offset, byteRate, true); offset += 4;
+            view.setUint16(offset, blockAlign, true); offset += 2;
+            view.setUint16(offset, bytesPerSample * 8, true); offset += 2;
             writeString(view, offset, 'data'); offset += 4;
-            view.setUint32(offset, dataSize, true); offset += 4; // Data size
+            view.setUint32(offset, dataSize, true); offset += 4;
 
-            // Write PCM data
             const pcmBytes = new Uint8Array(buffer, offset);
             pcmBytes.set(new Uint8Array(pcmData.buffer));
 
             return new Blob([view], { type: 'audio/wav' });
         }
 
-        /** Helper function to write strings to DataView */
         function writeString(view, offset, string) {
             for (let i = 0; i < string.length; i++) {
                 view.setUint8(offset + i, string.charCodeAt(i));
             }
         }
 
-        /**
-         * Plays audio from a URL and returns a Promise that resolves when playback ends or errors.
-         * @param {string | null} audioUrl The URL of the audio file.
-         * @returns {Promise<void>} A promise that resolves when the audio ends.
-         */
         function playAudio(audioUrl) {
             if (!audioUrl) return Promise.resolve();
             
             return new Promise(resolve => {
                 const audio = new Audio(audioUrl);
-                // Resolve the promise when playback finishes or if an error occurs (to unlock the UI)
                 audio.onended = () => resolve();
                 audio.onerror = () => {
                     console.error("Audio playback error.");
@@ -212,11 +308,6 @@
             });
         }
         
-        /**
-         * Calls the Gemini TTS API to convert text to speech and returns the audio URL.
-         * @param {string} text The text to synthesize.
-         * @returns {Promise<string | null>} The audio URL or null on failure.
-         */
         async function speakMemory(text) {
             const apiKey = ""; 
             const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${apiKey}`;
@@ -229,7 +320,7 @@
                     responseModalities: ["AUDIO"],
                     speechConfig: {
                         voiceConfig: {
-                            prebuiltVoiceConfig: { voiceName: "Puck" } // Using 'Puck', an Upbeat, female-sounding voice
+                            prebuiltVoiceConfig: { voiceName: "Puck" } // Upbeat, female voice
                         }
                     }
                 },
@@ -271,7 +362,7 @@
                         const wavBlob = pcmToWav(pcm16, sampleRate);
                         const audioUrl = URL.createObjectURL(wavBlob);
                         
-                        return audioUrl; // Return the URL
+                        return audioUrl; 
                     } else {
                         console.error("TTS response did not contain valid audio data.");
                         return null;
@@ -282,7 +373,7 @@
                          await new Promise(resolve => setTimeout(resolve, currentDelay));
                          currentDelay *= 2;
                     } else {
-                        return null; // All retries failed
+                        return null; 
                     }
                 }
             }
@@ -290,13 +381,8 @@
         }
 
 
-        /**
-         * Creates a shower of hearts animated to fall across the screen.
-         */
         function heartShower() {
-            // Disable the button permanently after the final action
             revealButton.disabled = true;
-
             const body = document.body;
             const numHearts = 30;
 
@@ -321,16 +407,18 @@
             }
         }
 
-        /**
-         * Main function to handle the button click and reveal the next memory.
-         * Now uses await to prevent the button from being usable until the audio finishes.
-         */
-        async function revealNextMemory() {
-            if (clickCount >= memories.length) return; // Stop if already finished
+        // --- CORE FLOW LOGIC ---
 
-            // 1. Disable button while processing/playing
+        /**
+         * Executes the memory reveal (after the puzzle is solved).
+         */
+        async function executeMemoryReveal() {
+            // Clean up puzzle elements
+            cleanupPuzzle();
+            
+            // 1. Disable button and show processing
             revealButton.disabled = true;
-            revealButton.textContent = 'Processing... please wait';
+            revealButton.textContent = 'Unlocking Memory...';
             
             const memoryText = memories[clickCount];
 
@@ -340,14 +428,14 @@
             
             // 3. Fetch the audio and wait for it to finish playing
             const audioUrl = await speakMemory(memoryText);
-            await playAudio(audioUrl); // This awaits the full audio playback
+            await playAudio(audioUrl); 
 
             clickCount++;
 
             // 4. Re-enable button and update state for the next step
             if (clickCount < memories.length) {
                 // Not finished yet - set up for the next click
-                revealButton.textContent = `Unlock Memory ${clickCount + 1} / ${memories.length}`;
+                revealButton.textContent = `Start Puzzle for Memory ${clickCount + 1} / ${memories.length}`;
                 revealButton.disabled = false;
             } else {
                 // FINAL STEP
@@ -369,6 +457,20 @@
                 revealButton.disabled = false; // Enable for the final click to trigger heart shower
                 
                 // Trigger the heart shower immediately as well, just for extra love!
+                heartShower();
+            }
+        }
+
+
+        /**
+         * Main function to handle the button click. Now acts as a state manager.
+         */
+        function revealNextMemory() {
+            if (clickCount < memories.length) {
+                // If there are memories left, start the puzzle sequence
+                setupPuzzle();
+            } else {
+                // This branch handles the final click set up by executeMemoryReveal
                 heartShower();
             }
         }
