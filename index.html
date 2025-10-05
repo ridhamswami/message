@@ -22,10 +22,9 @@
             min-height: 100vh;
         }
 
-        /* Custom Heart Animation */
+        /* Custom Heart/Confetti Animation */
         .heart-particle {
             position: absolute;
-            color: var(--primary-color);
             font-size: 20px;
             animation: fall linear forwards;
             pointer-events: none;
@@ -92,8 +91,9 @@
 
         <!-- Memory Display Area -->
         <div id="memory-display" class="bg-gray-800 p-4 sm:p-6 rounded-xl border border-pink-500 mb-8 min-h-[120px] flex flex-col items-center justify-center">
-            <img id="memory-gif" src="" alt="Romantic GIF" class="hidden rounded-lg mb-4 max-w-full h-auto" style="max-height: 150px; object-fit: cover; border: 2px solid var(--secondary-color);" 
-                onerror="this.onerror=null;this.src='https://placehold.co/400x150/1f2937/fef08a?text=Loading+GIF+or+Placeholder...';" >
+            <!-- This element is now used for images instead of GIFs -->
+            <img id="memory-gif" src="" alt="Romantic Photo" class="hidden rounded-lg mb-4 max-w-full h-auto" style="max-height: 150px; object-fit: cover; border: 2px solid var(--secondary-color);" 
+                onerror="this.onerror=null;this.src='https://placehold.co/400x150/1f2937/fef08a?text=Loading+Image...';" >
             <p id="current-memory" class="text-lg sm:text-xl text-yellow-200 font-semibold italic transition-opacity duration-500 opacity-100">
                 Click the button below to unlock your first secret memory!
             </p>
@@ -143,13 +143,14 @@
             "I've loved every moment of these past three months. Here's to many, many more, my love! ❤️"
         ];
         
-        // --- UPDATED ROMANTIC GIFS ---
-        const memoryGifs = [
-            "https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExcHJkYzVoYWgycTlpM3N2cDNub3h4N3dkY2JjOWM3ZDNrOGg5djQ5byZlcD12MV9pbnRlcm5hbF9naWYmY3Q9Zw/LrnC159R7FqIeQ4k6z/giphy.gif", // Cute couple animated love
-            "https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExYXAwa3Nvb2E1ejRkMmFkbmZ3b2FvazB3MWw5b241Z2d4YzlwbnJ0eSZlcD12MV9pbnRlcm5hbF9naWYmY3Q9Zw/uwuY2Vb93wX2M/giphy.gif", // Floating hearts animation
-            "https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExdzEzN2V4eGYwM2I3NW4yMmN0NTVpaWhra3h3eHN0cmliYW12Y3J0eSZlcD12MV9pbnRlcm5hbF9naWYmY3Q9Zw/F0f5r9J9L7F2eL2uXk/giphy.gif", // Animated animals in love (Rabbits)
-            "https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExZTRyY3Axd2ZqMjI3OHFjZGlrbWwzZ2xmbzVrbGZqNzFkMHNqczk0MSZlcD12MV9pbnRlcm5hbF9naWYmY3Q9Zw/l0MYt5ixJ3U04XoXu/giphy.gif", // "I Love You" text animation
-            "https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExZndjNnd5eG1paHZkbzVjMWd3M2Vob2t5d28xYm01eWk1Mnd1N2F0dCZlcD12MV9pbnRlcm5hbF9naWYmY3Q9Zw/XGP7fR4wVjJcWfGkGf/giphy.gif"  // Cute kissing animation
+        // --- Placeholder Images (REPLACE THESE with your actual image URLs!) ---
+        const memoryImages = [
+            // Example: replace with "https://yourimagehost.com/photo1.jpg"
+            "https://placehold.co/400x150/f9a8d4/1f2937?text=Memory+Photo+1+(Replace+Me)", 
+            "https://placehold.co/400x150/fef08a/1f2937?text=Memory+Photo+2+(Replace+Me)",
+            "https://placehold.co/400x150/f9a8d4/1f2937?text=Memory+Photo+3+(Replace+Me)",
+            "https://placehold.co/400x150/fef08a/1f2937?text=Memory+Photo+4+(Replace+Me)",
+            "https://placehold.co/400x150/f9a8d4/1f2937?text=Memory+Photo+5+(Replace+Me)"
         ];
         
         let clickCount = 0;
@@ -162,7 +163,7 @@
         const finalMessageContainer = document.getElementById('final-message-container');
         const finalMessage = document.getElementById('final-message');
         const card = document.getElementById('card');
-        const memoryGif = document.getElementById('memory-gif');
+        const memoryGif = document.getElementById('memory-gif'); // Retaining ID for continuity, but now holds an image
         const finalImageElement = document.getElementById('final-image');
         const bgMusic = document.getElementById('bg-music');
         const musicToggleButton = document.getElementById('music-toggle-button');
@@ -201,30 +202,38 @@
         // Attach the music toggle to the button
         musicToggleButton.addEventListener('click', toggleMusic);
 
-        // --- UTILITY FUNCTIONS ---
+        // --- PARTY POPPERS/CONFETTI EFFECT ---
 
-        function heartShower() {
-            revealButton.disabled = true;
+        function confettiShower() {
+            const colors = ['#f9a8d4', '#fef08a', '#ffffff', '#ef4444']; // Pink, Yellow, White, Red
+            const shapes = ['❤️', '🎉', '✨', '💖']; // Hearts, Poppers, Sparkles
             const body = document.body;
-            const numHearts = 30;
+            const numParticles = 40;
 
-            for (let i = 0; i < numHearts; i++) {
-                const heart = document.createElement('div');
-                heart.className = 'heart-particle';
-                heart.innerHTML = '❤️'; 
+            for (let i = 0; i < numParticles; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'heart-particle'; // Using existing class for animation
+                
+                // Randomly select shape and color
+                const content = shapes[Math.floor(Math.random() * shapes.length)];
+                const color = colors[Math.floor(Math.random() * colors.length)];
+
+                particle.innerHTML = content; 
+                particle.style.color = color;
+                particle.style.fontSize = `${Math.random() * 10 + 15}px`; // Vary size
 
                 const x = Math.random() * 100; 
                 const duration = Math.random() * 2 + 3; 
                 const delay = Math.random() * 1; 
 
-                heart.style.left = `${x}vw`;
-                heart.style.animationDuration = `${duration}s`;
-                heart.style.animationDelay = `${delay}s`;
+                particle.style.left = `${x}vw`;
+                particle.style.animationDuration = `${duration}s`;
+                particle.style.animationDelay = `${delay}s`;
                 
-                body.appendChild(heart);
+                body.appendChild(particle);
 
                 setTimeout(() => {
-                    heart.remove();
+                    particle.remove();
                 }, (duration + delay) * 1000);
             }
         }
@@ -233,12 +242,11 @@
 
         /**
          * Main function to handle the button click and reveal the next memory.
-         * Now uses instant text display instead of waiting for TTS.
          */
         async function revealNextMemory() {
             // Check if we have revealed all memories and should trigger the final action
             if (clickCount >= memories.length) {
-                heartShower(); // Final click action for heart animation
+                confettiShower(); // Final click action for confetti
                 return;
             }
 
@@ -248,15 +256,18 @@
             
             const memoryText = memories[clickCount];
 
-            // 2. Display the current memory and GIF instantly
+            // 2. Display the current memory and Image instantly
             currentMemory.textContent = memoryText;
             memoryCounter.textContent = clickCount + 1;
             
-            // Show GIF
-            memoryGif.src = memoryGifs[clickCount];
+            // Show Image (uses the new memoryImages array)
+            memoryGif.src = memoryImages[clickCount];
             memoryGif.classList.remove('hidden');
             
-            // 3. Wait a moment for visual effect (no audio delay needed now)
+            // Trigger the Party Poppers/Confetti effect
+            confettiShower();
+            
+            // 3. Wait a moment for visual effect 
             await new Promise(resolve => setTimeout(resolve, 500));
 
             clickCount++;
@@ -269,8 +280,6 @@
             } else {
                 // FINAL STEP
                 
-                // *** IMPORTANT CHANGE: Removed bgMusic.pause() to let the music loop forever ***
-                
                 // Update the card appearance for the grand finale
                 card.classList.remove('border-pink-400');
                 card.classList.add('border-yellow-200');
@@ -279,22 +288,21 @@
                 // Display the final message
                 finalMessage.textContent = "Happy 3 months, my wonderful Aryan. I've enjoyed every moment, and I can't wait for what's next! Love you always. - Ridham";
                 finalMessageContainer.classList.remove('hidden');
-                memoryGif.classList.add('hidden'); // Hide the last GIF
+                memoryGif.classList.add('hidden'); // Hide the last memory image
                 finalImageElement.classList.remove('hidden'); // Ensure final image is shown
                 
                 // Final button state
                 revealButton.textContent = "Now, I just need a big hug! 🤗";
-                revealButton.onclick = heartShower; // New function for the final click
+                revealButton.onclick = confettiShower; // The final click triggers one last confetti burst
                 revealButton.classList.remove('bg-pink-500');
                 revealButton.classList.add('bg-yellow-500');
                 revealButton.disabled = false; 
                 
-                // Trigger the heart shower immediately as well, just for extra love!
-                heartShower();
+                // Also trigger the confetti shower for the grand reveal
+                confettiShower();
             }
         }
     </script>
 
 </body>
 </html>
-
